@@ -2,7 +2,7 @@
 import  { useState } from "react";
 import ThemeSwitch from "../ThemeSwitch";
 import Link from "next/link";
-
+import Avatar from "../avatar/Avatar";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -50,6 +50,7 @@ const Header = () => {
             >
               Войти
             </Link>
+            <Avatar isAuthenticated={false} />
           </div>
 
           {/* Кнопка гамбургер */}
@@ -111,6 +112,7 @@ const Header = () => {
           </Link>
           <ThemeSwitch />
           {/* Кнопка Войти в мобильном меню */}
+          <Avatar isAuthenticated={true} name="Сергей Иванов" />
           <Link
             href="/auth"
             className="block px-4 py-2 rounded text-center 
