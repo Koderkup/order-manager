@@ -1,15 +1,26 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ThemeSwitch from "../ThemeSwitch";
 import Link from "next/link";
 import Avatar from "../avatar/Avatar";
 import { useUserStore } from "@/store/userStore";
-
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
 
+  useEffect(() => {
+    (async () => {
+      const res = await fetchWithAuth("/api/checkAuth", { method: "GET" });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user); 
+      } else {
+        setUser(null);
+      }
+    })();
+  }, [setUser]);
   const handleLogout = async () => {
     setUser(null);
     localStorage.removeItem("user-storage");
