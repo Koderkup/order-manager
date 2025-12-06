@@ -10,6 +10,13 @@ export default function ThemeSwitch() {
   const { setTheme, resolvedTheme } = useTheme();
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (resolvedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [resolvedTheme]);
 
   if (!mounted)
     return (
