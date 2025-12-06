@@ -1,12 +1,15 @@
 "use client";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/userStore";
 
 export default function AuthPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const setUser = useUserStore((state) => state.setUser);
 
-  // поля формы
   const [formData, setFormData] = useState({
     name: "",
     sirname: "",
@@ -17,12 +20,11 @@ export default function AuthPage() {
 
   const [message, setMessage] = useState("");
 
-  // обновление полей
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // обработка формы
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
@@ -43,7 +45,9 @@ export default function AuthPage() {
         const data = await res.json();
         if (res.ok) {
           setMessage("Регистрация успешна!");
-          setIsRegister(false); // переключаем на форму входа
+          setIsRegister(false);
+          setUser(data.user);
+          router.push("/profile");
         } else {
           setMessage(data.error || "Ошибка регистрации");
         }
@@ -59,7 +63,9 @@ export default function AuthPage() {
         const data = await res.json();
         if (res.ok) {
           setMessage("Авторизация успешна!");
-          // здесь можно редиректить на /profile
+          setUser(data.user);
+          router.push("/profile");
+       
         } else {
           setMessage(data.error || "Ошибка авторизации");
         }
