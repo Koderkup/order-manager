@@ -1,10 +1,25 @@
 "use client";
-import  { useState } from "react";
+import { useState } from "react";
 import ThemeSwitch from "../ThemeSwitch";
 import Link from "next/link";
 import Avatar from "../avatar/Avatar";
+import { useUserStore } from "@/store/userStore";
+
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const user = useUserStore((state) => state.user);
+  const setUser = useUserStore((state) => state.setUser);
+
+  const handleLogout = async () => {
+    setUser(null);
+    localStorage.removeItem("user-storage");
+    try {
+      await fetch("/api/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Ошибка при удалении куки:", err);
+    }
+    window.location.href = "/";
+  };
 
   return (
     <header className="bg-background text-foreground dark:bg-gray-900 dark:text-gray-100 shadow-md shadow-gray-300 dark:shadow-gray-700">
@@ -42,15 +57,29 @@ const Header = () => {
             </Link>
             <ThemeSwitch />
             {/* Кнопка Войти */}
-            <Link
-              href="/auth"
-              className="px-4 py-2 rounded transition 
-                         bg-[#F5F2DD] text-gray-800 font-medium 
-                         shadow-md hover:shadow-lg hover:bg-[#e9e6cc]"
-            >
-              Войти
-            </Link>
-            <Avatar isAuthenticated={false} />
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 rounded transition 
+                           bg-red-200 text-gray-800 font-medium 
+                           shadow-md hover:shadow-lg hover:bg-red-300"
+              >
+                Выйти
+              </button>
+            ) : (
+              <Link
+                href="/auth"
+                className="px-4 py-2 rounded transition 
+                           bg-[#F5F2DD] text-gray-800 font-medium 
+                           shadow-md hover:shadow-lg hover:bg-[#e9e6cc]"
+              >
+                Войти
+              </Link>
+            )}
+            <Avatar
+              isAuthenticated={!!user}
+              name={user ? `${user.name} ${user.sirname}` : undefined}
+            />
           </div>
 
           {/* Кнопка гамбургер */}
@@ -112,15 +141,29 @@ const Header = () => {
           </Link>
           <ThemeSwitch />
           {/* Кнопка Войти в мобильном меню */}
-          <Avatar isAuthenticated={true} name="Сергей Иванов" />
-          <Link
-            href="/auth"
-            className="block px-4 py-2 rounded text-center 
-                       bg-[#F5F2DD] text-gray-800 font-medium 
-                       shadow-md hover:shadow-lg hover:bg-[#e9e6cc]"
-          >
-            Войти
-          </Link>
+          <Avatar
+            isAuthenticated={!!user}
+            name={user ? `${user.name} ${user.sirname}` : undefined}
+          />
+          {user ? (
+            <button
+              onClick={handleLogout}
+              className="block w-full px-4 py-2 rounded text-center 
+                         bg-red-200 text-gray-800 font-medium 
+                         shadow-md hover:shadow-lg hover:bg-red-300"
+            >
+              Выйти
+            </button>
+          ) : (
+            <Link
+              href="/auth"
+              className="block px-4 py-2 rounded text-center 
+                         bg-[#F5F2DD] text-gray-800 font-medium 
+                         shadow-md hover:shadow-lg hover:bg-[#e9e6cc]"
+            >
+              Войти
+            </Link>
+          )}
         </div>
       )}
     </header>
