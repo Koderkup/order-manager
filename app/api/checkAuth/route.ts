@@ -8,6 +8,7 @@ export async function GET() {
   const accessToken = cookieStore.get("access_token")?.value;
   const refreshToken = cookieStore.get("refresh_token")?.value;
 
+ 
   if (!accessToken && refreshToken) {
     try {
       const payload = jwt.verify(
@@ -16,19 +17,26 @@ export async function GET() {
       ) as any;
       const newAccessToken = createAccessToken(payload);
 
-      const response = NextResponse.json({ user: payload });
+      const response = NextResponse.json({
+        user: payload,
+        accessToken: newAccessToken, 
+      });
+
       response.cookies.set("access_token", newAccessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production" ? true : false,
         sameSite: "strict",
-        maxAge: 60 * 15, // 15 минут
+        path: "/", 
+        maxAge: 60 * 15, 
       });
+
       return response;
     } catch {
       return NextResponse.json({ error: "Refresh истёк" }, { status: 401 });
     }
   }
 
+  // Если access есть
   if (accessToken) {
     try {
       const payload = jwt.verify(
@@ -47,13 +55,19 @@ export async function GET() {
         ) as any;
         const newAccessToken = createAccessToken(payload);
 
-        const response = NextResponse.json({ user: payload });
+        const response = NextResponse.json({
+          user: payload,
+          accessToken: newAccessToken, 
+        });
+
         response.cookies.set("access_token", newAccessToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: process.env.NODE_ENV === "production" ? true : false,
           sameSite: "strict",
+          path: "/",
           maxAge: 60 * 15,
         });
+
         return response;
       } catch {
         return NextResponse.json({ error: "Refresh истёк" }, { status: 401 });
@@ -63,7 +77,6 @@ export async function GET() {
 
   return NextResponse.json({ error: "Нет токенов" }, { status: 401 });
 }
-
 
 //1-й вариант
 

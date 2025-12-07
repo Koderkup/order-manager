@@ -12,19 +12,31 @@ const Header = () => {
 
   useEffect(() => {
     (async () => {
-      const res = await fetchWithAuth("/api/checkAuth", { method: "GET" });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user); 
-      } else {
+      try {
+        const res = await fetchWithAuth("/api/checkAuth", { method: "GET" });
+        if (res.ok) {
+          const data = await res.json();
+
+          setUser(data.user);
+
+          if (data.accessToken) {
+            localStorage.setItem("access_token", data.accessToken);
+          }
+        } else {
+          setUser(null);
+          localStorage.removeItem("access_token");
+        }
+      } catch (err) {
+        console.error("Ошибка авторизации:", err);
         setUser(null);
       }
     })();
   }, [setUser]);
-  
+
   const handleLogout = async () => {
     setUser(null);
     localStorage.removeItem("user-storage");
+    localStorage.removeItem("access_token");
     try {
       await fetch("/api/logout", { method: "POST" });
     } catch (err) {

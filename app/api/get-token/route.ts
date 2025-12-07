@@ -37,6 +37,7 @@ export async function POST(req: Request) {
         id: user.id,
         name: user.name,
         email: user.email,
+        inn: user.inn,
         role: user.role,
         access: user.access,
       },
