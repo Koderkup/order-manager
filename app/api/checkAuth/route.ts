@@ -36,7 +36,7 @@ export async function GET() {
     }
   }
 
-  // Если access есть
+
   if (accessToken) {
     try {
       const payload = jwt.verify(
