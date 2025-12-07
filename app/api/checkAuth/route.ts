@@ -10,7 +10,10 @@ export async function GET() {
 
   if (!accessToken && refreshToken) {
     try {
-      const payload = jwt.verify(refreshToken, process.env.JWT_SECRET!) as any;
+      const payload = jwt.verify(
+        refreshToken,
+        process.env.NEXT_PUBLIC_JWT_SECRET!
+      ) as any;
       const newAccessToken = createAccessToken(payload);
 
       const response = NextResponse.json({ user: payload });
@@ -28,7 +31,10 @@ export async function GET() {
 
   if (accessToken) {
     try {
-      const payload = jwt.verify(accessToken, process.env.JWT_SECRET!) as any;
+      const payload = jwt.verify(
+        accessToken,
+        process.env.NEXT_PUBLIC_JWT_SECRET!
+      ) as any;
       return NextResponse.json({ user: payload });
     } catch {
       if (!refreshToken) {
@@ -37,7 +43,7 @@ export async function GET() {
       try {
         const payload = jwt.verify(
           refreshToken,
-          process.env.JWT_SECRET!
+          process.env.NEXT_PUBLIC_JWT_SECRET!
         ) as any;
         const newAccessToken = createAccessToken(payload);
 

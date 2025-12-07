@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Неверный пароль" }, { status: 401 });
     }
 
-    // Генерация токенов
+    
     const accessToken = jwt.sign(
       {
         id: user.id,
@@ -40,19 +40,23 @@ export async function POST(req: Request) {
         role: user.role,
         access: user.access,
       },
-      process.env.JWT_SECRET!, // ⚠️ лучше использовать серверный секрет, а не NEXT_PUBLIC
+      process.env.NEXT_PUBLIC_JWT_SECRET!,
       { expiresIn: "15m" }
     );
 
-    const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
+    const refreshToken = jwt.sign(
+      { id: user.id },
+      process.env.NEXT_PUBLIC_JWT_SECRET!,
+      {
+        expiresIn: "7d",
+      }
+    );
 
     // Время жизни в секундах
     const accessTimeout = 15 * 60; // 15 минут
     const refreshTimeout = 7 * 24 * 60 * 60; // 7 дней
 
-    // Возвращаем только JSON, без установки куки
+  
     return NextResponse.json({
       message: "Токены выданы",
       accessToken,
