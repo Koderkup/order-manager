@@ -21,6 +21,7 @@ const Header = () => {
       }
     })();
   }, [setUser]);
+  
   const handleLogout = async () => {
     setUser(null);
     localStorage.removeItem("user-storage");
