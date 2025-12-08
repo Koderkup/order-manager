@@ -28,16 +28,13 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground  h-screen md:h-screen`}
       >
         <Providers>
-          
-          <div className="grid min-h-screen grid-rows-[auto_1fr_auto] md:grid-rows-[1fr_auto] md:grid-cols-[18rem_1fr]">
-           
-            <Sidebar className="row-start-1 md:row-start-1 md:col-start-1 h-full md:h-screen" />
+          <div className="grid grid-rows-[auto_1fr_auto] md:grid-rows-[1fr_auto] md:grid-cols-[18rem_1fr]">
+            <Sidebar className="" />
 
-            
-            <main className="row-start-2 md:row-start-1 md:col-start-2 px-4 sm:px-6 lg:px-8">
+            <main className="row-start-2 md:row-start-1 md:col-start-2 px-4 sm:px-6 lg:px-8 h-full">
               {children}
             </main>
 

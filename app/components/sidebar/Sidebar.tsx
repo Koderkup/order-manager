@@ -65,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
 
   return (
     <aside
-      className={`w-full md:w-72 h-full md:h-screen bg-white border-b md:border-r border-gray-200 flex flex-col shadow-md ${
+      className={`w-full md:w-72 bg-white border-b md:border-r border-gray-200 flex flex-col shadow-md ${
         className ?? ""
       }`}
     >
@@ -78,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       {/* User profile */}
       {user && (
         <div className="flex items-center px-6 py-6 border-b border-gray-200">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center text-white text-lg font-medium mr-4">
+          <div className="w-14 h-14 rounded-full bg-linear-to-br from-gray-600 to-gray-800 flex items-center justify-center text-white text-lg font-medium mr-4">
             {user.code ?? "??"}
           </div>
           <div>
@@ -89,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible">
+      <nav className="py-4 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible justify-around">
         <Link
           href="/personal-account"
           className={linkClass("/personal-account")}
