@@ -1,16 +1,21 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface User {
+export interface User {
   id: number;
-  create_time: string;
-  name: string;
-  sirname: string;
+  role: "admin" | "client" | "manager";
   email: string;
-  inn: number;
-  role: string;
-  access: number;
+  access: number | boolean;
+  create_time: string;
+  code: string | null;
+  name: string | null;
+  inn: string | null;
+  kpp: string | null;
+  legal_address: string | null;
+  actual_address: string | null;
+  active: boolean;
 }
+
 
 interface UserState {
   user: User | null;

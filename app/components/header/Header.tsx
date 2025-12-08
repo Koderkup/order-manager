@@ -5,6 +5,7 @@ import Link from "next/link";
 import Avatar from "../avatar/Avatar";
 import { useUserStore } from "@/store/userStore";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const user = useUserStore((state) => state.user);
@@ -16,9 +17,7 @@ const Header = () => {
         const res = await fetchWithAuth("/api/checkAuth", { method: "GET" });
         if (res.ok) {
           const data = await res.json();
-
           setUser(data.user);
-
           if (data.accessToken) {
             localStorage.setItem("access_token", data.accessToken);
           }
@@ -65,22 +64,27 @@ const Header = () => {
               Главная
             </Link>
             <Link
-              href="/my-orders"
-              className="text-foreground hover:text-red-500"
-            >
-              Мои заказы
-            </Link>
-            <Link
-              href="/profile"
+              href="/personal-account"
               className="text-foreground hover:text-red-500"
             >
               Профиль
             </Link>
-            <Link href="/users" className="text-foreground hover:text-red-500">
-              Клиенты
+            <Link
+              href="/contracts"
+              className="text-foreground hover:text-red-500"
+            >
+              Договора
+            </Link>
+            <Link
+              href="/my-orders"
+              className="text-foreground hover:text-red-500"
+            >
+              Заказы
+            </Link>
+            <Link href="/price" className="text-foreground hover:text-red-500">
+              Прайс-лист
             </Link>
             <ThemeSwitch />
-            {/* Кнопка Войти */}
             {user ? (
               <button
                 onClick={handleLogout}
@@ -102,7 +106,7 @@ const Header = () => {
             )}
             <Avatar
               isAuthenticated={!!user}
-              name={user ? `${user.name} ${user.sirname}` : undefined}
+              name={user ? `${user.name} ${user.inn}` : undefined}
             />
           </div>
 
@@ -146,28 +150,33 @@ const Header = () => {
             Главная
           </Link>
           <Link
-            href="/my-orders"
-            className="block text-foreground hover:text-red-500"
-          >
-            Мои заказы
-          </Link>
-          <Link
-            href="/profile"
+            href="/personal-account"
             className="block text-foreground hover:text-red-500"
           >
             Профиль
           </Link>
           <Link
-            href="/users"
+            href="/contracts"
             className="block text-foreground hover:text-red-500"
           >
-            Клиенты
+            Договора
+          </Link>
+          <Link
+            href="/my-orders"
+            className="block text-foreground hover:text-red-500"
+          >
+            Заказы
+          </Link>
+          <Link
+            href="/price"
+            className="block text-foreground hover:text-red-500"
+          >
+            Прайс-лист
           </Link>
           <ThemeSwitch />
-          {/* Кнопка Войти в мобильном меню */}
           <Avatar
             isAuthenticated={!!user}
-            name={user ? `${user.name} ${user.sirname}` : undefined}
+            name={user ? `${user.name} ${user.inn}` : undefined}
           />
           {user ? (
             <button

@@ -11,11 +11,14 @@ export default function AuthPage() {
   const setUser = useUserStore((state) => state.setUser);
 
   const [formData, setFormData] = useState({
-    name: "",
-    sirname: "",
-    inn: "",
     email: "",
     password: "",
+    code: "",
+    name: "",
+    inn: "",
+    kpp: "",
+    legal_address: "",
+    actual_address: "",
   });
 
   const [message, setMessage] = useState("");
@@ -24,7 +27,6 @@ export default function AuthPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
@@ -35,11 +37,14 @@ export default function AuthPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            name: formData.name,
-            sirname: formData.sirname,
             email: formData.email,
             password: formData.password,
+            code: formData.code,
+            name: formData.name,
             inn: formData.inn,
+            kpp: formData.kpp,
+            legal_address: formData.legal_address,
+            actual_address: formData.actual_address,
           }),
         });
         const data = await res.json();
@@ -47,7 +52,7 @@ export default function AuthPage() {
           setMessage("Регистрация успешна!");
           setIsRegister(false);
           setUser(data.user);
-          router.push("/profile");
+          router.push("/personal-account");
         } else {
           setMessage(data.error || "Ошибка регистрации");
         }
@@ -64,8 +69,7 @@ export default function AuthPage() {
         if (res.ok) {
           setMessage("Авторизация успешна!");
           setUser(data.user);
-          router.push("/profile");
-       
+          router.push("/personal-account");
         } else {
           setMessage(data.error || "Ошибка авторизации");
         }
@@ -86,36 +90,70 @@ export default function AuthPage() {
           {isRegister && (
             <>
               <div>
-                <label className="block mb-1">Имя</label>
+                <label className="block mb-1">Код</label>
+                <input
+                  type="text"
+                  name="code"
+                  value={formData.code}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Наименование</label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-background text-foreground focus:outline-none focus:ring focus:border-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block mb-1">Фамилия</label>
-                <input
-                  type="text"
-                  name="sirname"
-                  value={formData.sirname}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-background text-foreground focus:outline-none focus:ring focus:border-blue-500"
+                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
                   required
                 />
               </div>
               <div>
                 <label className="block mb-1">ИНН</label>
                 <input
-                  type="number"
+                  type="text"
                   name="inn"
                   value={formData.inn}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-background text-foreground focus:outline-none focus:ring focus:border-blue-500"
+                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
                   required
+                  maxLength={12} // максимум 12 символов
+                  pattern="\d{10,12}"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">КПП</label>
+                <input
+                  type="text"
+                  name="kpp"
+                  value={formData.kpp}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+                  maxLength={9} // максимум 9 символов
+                  pattern="\d{9}"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Юридический адрес</label>
+                <input
+                  type="text"
+                  name="legal_address"
+                  value={formData.legal_address}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Фактический адрес</label>
+                <input
+                  type="text"
+                  name="actual_address"
+                  value={formData.actual_address}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
                 />
               </div>
             </>
@@ -128,7 +166,7 @@ export default function AuthPage() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-background text-foreground focus:outline-none focus:ring focus:border-blue-500"
+              className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
               required
             />
           </div>
@@ -140,8 +178,9 @@ export default function AuthPage() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-background text-foreground focus:outline-none focus:ring focus:border-blue-500"
+              className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
               required
+              minLength={6}
             />
             <button
               type="button"
@@ -152,13 +191,9 @@ export default function AuthPage() {
             </button>
           </div>
 
-          {/* Кнопка Войти / Зарегистрироваться */}
           <button
             type="submit"
-            className="w-full py-2 rounded font-medium 
-             bg-yellow-300 text-gray-800 
-             shadow-md hover:shadow-lg 
-             hover:bg-yellow-400 transition"
+            className="w-full py-2 rounded font-medium bg-yellow-300 text-gray-800 shadow-md hover:shadow-lg hover:bg-yellow-400 transition"
           >
             {isRegister ? "Зарегистрироваться" : "Войти"}
           </button>

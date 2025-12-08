@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { getConnection } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import {
-  createAccessToken,
-  createRefreshToken,
-} from "@/utils/generateToken";
+import { createAccessToken, createRefreshToken } from "@/utils/generateToken";
+import { User } from "@/store/userStore";
 
 export async function POST(req: Request) {
   try {
@@ -33,19 +31,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Неверный пароль" }, { status: 401 });
     }
 
-   
     const accessToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user);
 
-    const userData = {
+    const userData: User = {
       id: user.id,
-      create_time: user.create_time,
-      name: user.name,
-      sirname: user.sirname,
-      email: user.email,
-      inn: user.inn,
       role: user.role,
+      email: user.email,
       access: user.access,
+      create_time: user.create_time,
+      code: user.code,
+      name: user.name,
+      inn: user.inn,
+      kpp: user.kpp,
+      legal_address: user.legal_address,
+      actual_address: user.actual_address,
+      active: user.active,
     };
 
     const response = NextResponse.json({
@@ -53,7 +54,6 @@ export async function POST(req: Request) {
       user: userData,
     });
 
-    
     response.cookies.set("access_token", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -61,7 +61,6 @@ export async function POST(req: Request) {
       maxAge: 60 * 15, // 15 минут
     });
 
-    
     response.cookies.set("refresh_token", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

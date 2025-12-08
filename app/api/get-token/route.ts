@@ -31,15 +31,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Неверный пароль" }, { status: 401 });
     }
 
-    
     const accessToken = jwt.sign(
       {
         id: user.id,
-        name: user.name,
-        email: user.email,
-        inn: user.inn,
         role: user.role,
+        email: user.email,
         access: user.access,
+        create_time: user.create_time,
+        code: user.code,
+        name: user.name,
+        inn: user.inn,
+        kpp: user.kpp,
+        legal_address: user.legal_address,
+        actual_address: user.actual_address,
+        active: user.active,
       },
       process.env.NEXT_PUBLIC_JWT_SECRET!,
       { expiresIn: "15m" }
@@ -57,7 +62,6 @@ export async function POST(req: Request) {
     const accessTimeout = 15 * 60; // 15 минут
     const refreshTimeout = 7 * 24 * 60 * 60; // 7 дней
 
-  
     return NextResponse.json({
       message: "Токены выданы",
       accessToken,
