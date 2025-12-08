@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // добавляем
+import { usePathname } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
@@ -10,7 +10,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ className }) => {
-  const pathname = usePathname(); // текущий путь
+  const pathname = usePathname();
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
 
@@ -47,13 +47,21 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     window.location.href = "/";
   };
 
-  // функция для активного класса
-  const linkClass = (href: string) =>
-    `flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-800 border-l-4 transition ${
-      pathname === href
-        ? "border-[#5A6C7D] font-medium text-gray-800"
-        : "border-transparent"
-    }`;
+  const linkClass = (href: string) => {
+    const isActive = pathname === href;
+    return [
+      "flex flex-col items-center justify-center md:flex-row md:items-center md:justify-start",
+      "px-4 py-3 text-gray-600 transition",
+      "hover:bg-gray-50 hover:text-gray-800",
+      "min-w-[100px]",
+
+      "border-b-4 md:border-b-0 md:border-l-4 border-transparent",
+
+      isActive
+        ? "border-b-[#5A6C7D] md:border-l-[#5A6C7D] bg-[#F8FAFC] md:bg-transparent"
+        : "",
+    ].join(" ");
+  };
 
   return (
     <aside
