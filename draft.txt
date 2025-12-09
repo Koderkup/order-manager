@@ -1,7 +1,7 @@
 
-DROP TABLE IF EXISTS freedb_oredrDB.users;
 
 
+1======
 CREATE TABLE freedb_oredrDB.users (
     id INT AUTO_INCREMENT PRIMARY KEY,                
     role ENUM('admin', 'client', 'manager') DEFAULT 'client', 
@@ -28,7 +28,179 @@ VALUES
 ('client',  'client2@example.com', 'hashed_client2_pass', 0, 'C102', 'ИП Петров Петр',      '222333444555', '222333444', 'г. Брест, ул. Гагарина, д.20',   'г. Брест, ул. Октябрьская, д.25', 0),
 ('manager', 'manager2@example.com','hashed_manager2_pass',1, 'M502', 'ООО "Управление"',    '333444555666', '333444555', 'г. Могилёв, ул. Садовая, д.30',  'г. Могилёв, ул. Полевая, д.35', 1);
 
+2=====
+CREATE TABLE freedb_oredrDB.contracts (
+    id INT AUTO_INCREMENT PRIMARY KEY,                 
+    code VARCHAR(20) UNIQUE,                            
+    name VARCHAR(150) NOT NULL,                        
+    start_date DATE NOT NULL,                           
+    end_date DATE NOT NULL,                             
+    amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
+    active BOOLEAN DEFAULT TRUE                        
+)
 
+INSERT INTO freedb_oredrDB.contracts 
+    (code, name, start_date, end_date, amount, active)
+VALUES
+    ('C-001', 'Договор поставки оборудования', '2025-01-01', '2025-12-31', 1500000.00, TRUE),
+    ('C-002', 'Договор аренды офиса', '2025-02-01', '2026-01-31', 300000.00, TRUE),
+    ('C-003', 'Договор на маркетинговые услуги', '2025-03-15', '2025-09-15', 500000.00, TRUE),
+    ('C-004', 'Договор на IT‑поддержку', '2025-04-01', '2026-03-31', 200000.00, TRUE),
+    ('C-005', 'Договор на транспортные услуги', '2025-05-01', '2025-11-30', 75000.00, TRUE),
+    ('C-006', 'Договор на поставку сырья', '2025-06-01', '2025-12-31', 1200000.00, TRUE),
+    ('C-007', 'Договор на обучение персонала', '2025-07-01', '2025-07-31', 45000.00, FALSE),
+    ('C-008', 'Договор на консалтинг', '2025-08-01', '2025-12-31', 250000.00, TRUE),
+    ('C-009', 'Договор на ремонт оборудования', '2025-09-01', '2025-10-15', 60000.00, FALSE),
+    ('C-010', 'Договор на поставку мебели', '2025-10-01', '2026-03-31', 180000.00, TRUE);
+
+
+3======
+
+CREATE TABLE freedb_oredrDB.specifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,                 
+    code VARCHAR(20) UNIQUE,                            
+    name VARCHAR(150) NOT NULL,                         
+    contract_id INT NOT NULL,                           
+    start_date DATE NOT NULL,                           
+    end_date DATE NOT NULL,                             
+    amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
+    active BOOLEAN DEFAULT TRUE,                        
+    FOREIGN KEY (contract_id) REFERENCES freedb_oredrDB.contracts(id)
+)
+
+
+
+INSERT INTO freedb_oredrDB.specifications 
+    (code, name, contract_id, start_date, end_date, amount, active)
+VALUES
+    ('S-001', 'Спецификация на поставку серверов', 1, '2025-01-01', '2025-06-30', 800000.00, TRUE),
+    ('S-002', 'Спецификация на поставку рабочих станций', 1, '2025-07-01', '2025-12-31', 700000.00, TRUE),
+
+    ('S-003', 'Спецификация аренды конференц-зала', 2, '2025-02-01', '2025-06-30', 120000.00, TRUE),
+    ('S-004', 'Спецификация аренды офисных помещений', 2, '2025-07-01', '2026-01-31', 180000.00, TRUE),
+
+    ('S-005', 'Спецификация маркетинговой кампании весна', 3, '2025-03-15', '2025-06-15', 250000.00, TRUE),
+    ('S-006', 'Спецификация маркетинговой кампания осень', 3, '2025-07-01', '2025-09-15', 250000.00, FALSE),
+
+    ('S-007', 'Спецификация IT‑поддержки серверов', 4, '2025-04-01', '2025-09-30', 100000.00, TRUE),
+    ('S-008', 'Спецификация IT‑поддержки рабочих мест', 4, '2025-10-01', '2026-03-31', 100000.00, TRUE),
+
+    ('S-009', 'Спецификация транспортных услуг по маршруту Минск‑Витебск', 5, '2025-05-01', '2025-08-31', 40000.00, TRUE),
+    ('S-010', 'Спецификация транспортных услуг по маршруту Минск‑Гродно', 5, '2025-09-01', '2025-11-30', 35000.00, FALSE);
+
+
+4=====
+CREATE TABLE freedb_oredrDB.products (
+    id INT AUTO_INCREMENT PRIMARY KEY,        
+    code VARCHAR(20) UNIQUE,                  
+    name VARCHAR(150) NOT NULL,               
+    article VARCHAR(20) UNIQUE,               
+    price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    active BOOLEAN DEFAULT TRUE               
+)
+
+
+INSERT INTO freedb_oredrDB.products 
+    (code, name, article, price, active)
+VALUES
+    ('P-001', 'Сервер Dell PowerEdge R740', 'SRV-001', 450000.00, TRUE),
+    ('P-002', 'Рабочая станция HP Z4 G5', 'WS-002', 120000.00, TRUE),
+    ('P-003', 'Ноутбук Lenovo ThinkPad X1', 'NB-003', 95000.00, TRUE),
+    ('P-004', 'Принтер Canon LBP223dw', 'PRN-004', 25000.00, TRUE),
+    ('P-005', 'Маршрутизатор Cisco RV345', 'RTR-005', 40000.00, TRUE),
+    ('P-006', 'Стул офисный эргономичный', 'CHR-006', 8000.00, TRUE),
+    ('P-007', 'Стол письменный деревянный', 'TBL-007', 15000.00, TRUE),
+    ('P-008', 'Картридж Canon 057H', 'CRT-008', 12000.00, TRUE),
+    ('P-009', 'Монитор Samsung 27" UHD', 'MON-009', 30000.00, TRUE),
+    ('P-010', 'Телефон IP Yealink T46U', 'TEL-010', 18000.00, TRUE),
+    ('P-011', 'Кабель HDMI 2.1 (3м)', 'CBL-011', 1500.00, TRUE),
+    ('P-012', 'Система видеонаблюдения Hikvision', 'CCTV-012', 75000.00, FALSE)
+
+5======
+    CREATE TABLE freedb_oredrDB.specification_products (
+    id INT AUTO_INCREMENT PRIMARY KEY,               
+    specification_id INT NOT NULL,                    
+    product_id INT NOT NULL,                           
+    price DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
+    FOREIGN KEY (specification_id) REFERENCES freedb_oredrDB.specifications(id),
+    FOREIGN KEY (product_id) REFERENCES freedb_oredrDB.products(id),
+    UNIQUE (specification_id, product_id)             
+);
+
+
+6======
+
+CREATE TABLE freedb_oredrDB.orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,                  
+    number VARCHAR(12) UNIQUE NOT NULL,                 
+    order_date DATE NOT NULL,                          
+    status ENUM('Новый', 'Оформлен', 'Отменен') 
+           NOT NULL DEFAULT 'Новый',                    
+    client_id INT NOT NULL,                            
+    contract_id INT NOT NULL,                          
+    specification_id INT NOT NULL,                      
+    amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
+    FOREIGN KEY (client_id) REFERENCES freedb_oredrDB.users(id),
+    FOREIGN KEY (contract_id) REFERENCES freedb_oredrDB.contracts(id),
+    FOREIGN KEY (specification_id) REFERENCES freedb_oredrDB.specifications(id)
+)
+
+INSERT INTO freedb_oredrDB.orders 
+    (number, order_date, status, client_id, contract_id, specification_id, amount)
+VALUES
+    ('ORD-0001', '2025-01-10', 'Новый',     1, 1, 1, 450000.00),
+    ('ORD-0002', '2025-01-15', 'Оформлен',  2, 1, 2, 240000.00),
+    ('ORD-0003', '2025-02-05', 'Отменен',   3, 2, 3, 120000.00),
+    ('ORD-0004', '2025-02-20', 'Новый',     4, 2, 4, 180000.00),
+    ('ORD-0005', '2025-03-18', 'Оформлен',  5, 3, 5, 250000.00),
+    ('ORD-0006', '2025-04-02', 'Новый',     6, 3, 6, 250000.00),
+    ('ORD-0007', '2025-04-25', 'Оформлен',  1, 4, 7, 100000.00),
+    ('ORD-0008', '2025-05-10', 'Отменен',   2, 4, 8, 100000.00),
+    ('ORD-0009', '2025-06-01', 'Новый',     3, 5, 9, 40000.00),
+    ('ORD-0010', '2025-06-15', 'Оформлен',  4, 5, 10, 35000.00);
+
+7=====
+CREATE TABLE freedb_oredrDB.order_products (
+    id INT AUTO_INCREMENT PRIMARY KEY,                
+    order_id INT NOT NULL,                             
+    product_id INT NOT NULL,                           
+    price DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
+    quantity INT(10) NOT NULL DEFAULT 1,               
+    total DECIMAL(15,2) GENERATED ALWAYS AS (price * quantity) STORED, 
+    FOREIGN KEY (order_id) REFERENCES freedb_oredrDB.orders(id),
+    FOREIGN KEY (product_id) REFERENCES freedb_oredrDB.products(id),
+    UNIQUE (order_id, product_id)                     
+)
+
+INSERT INTO freedb_oredrDB.order_products 
+    (order_id, product_id, price, quantity)
+VALUES
+    (11, 1, 450000.00, 1),   
+    (11, 9, 30000.00, 2),    
+    (12, 2, 120000.00, 1),   
+    (12, 4, 25000.00, 1),   
+    (13, 6, 8000.00, 10),   
+    (13, 7, 15000.00, 5),    
+    (14, 3, 95000.00, 2),    
+    (14, 11, 1500.00, 5),   
+    (15, 8, 12000.00, 3), 
+    (15, 10, 18000.00, 2),  
+    (16, 5, 40000.00, 1),    
+    (16, 12, 75000.00, 1),   
+    (17, 2, 115000.00, 1),   
+    (17, 3, 95000.00, 1),    
+    (18, 4, 25000.00, 2),    
+    (18, 11, 1500.00, 10),  
+    (19, 6, 8000.00, 4),    
+    (19, 7, 15000.00, 2),   
+    (20, 9, 30000.00, 1),  
+    (20, 10, 18000.00, 1);  
+
+
+Вопросы к Павлу:
+order_products.total Сделал вычисляемое поле. Но имей в виду: если цена или количество изменятся, MySQL пересчитает автоматически, а вот если нужно хранить «историческую» сумму (например, при изменении цены товара), иногда лучше хранить её явно.
+
+contracts.amount и specifications.amount Сейчас это просто сумма. В реальной системе часто делают так: сумма считается агрегатом по связанным товарам. 
 
 
 //1-й вариант
@@ -194,4 +366,732 @@ VALUES
           </button>
         </div>
       </aside>
-*
+
+old auth/page.tsx=====================================================
+
+// "use client";
+// import { useState } from "react";
+// import { FaEye, FaEyeSlash } from "react-icons/fa";
+// import { useRouter } from "next/navigation";
+// import { useUserStore } from "@/store/userStore";
+
+// export default function AuthPage() {
+//   const [isRegister, setIsRegister] = useState(false);
+//   const [showPassword, setShowPassword] = useState(false);
+//   const router = useRouter();
+//   const setUser = useUserStore((state) => state.setUser);
+
+//   const [formData, setFormData] = useState({
+//     email: "",
+//     password: "",
+//     code: "",
+//     name: "",
+//     inn: "",
+//     kpp: "",
+//     legal_address: "",
+//     actual_address: "",
+//   });
+
+//   const [message, setMessage] = useState("");
+
+//   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     setFormData({ ...formData, [e.target.name]: e.target.value });
+//   };
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     setMessage("");
+
+//     try {
+//       if (isRegister) {
+//         const res = await fetch("/api/register", {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify({
+//             email: formData.email,
+//             password: formData.password,
+//             code: formData.code,
+//             name: formData.name,
+//             inn: formData.inn,
+//             kpp: formData.kpp,
+//             legal_address: formData.legal_address,
+//             actual_address: formData.actual_address,
+//           }),
+//         });
+//         const data = await res.json();
+//         if (res.ok) {
+//           setMessage("Регистрация успешна!");
+//           setIsRegister(false);
+//           setUser(data.user);
+//           router.push("/personal-account");
+//         } else {
+//           setMessage(data.error || "Ошибка регистрации");
+//         }
+//       } else {
+//         const res = await fetch("/api/login", {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify({
+//             email: formData.email,
+//             password: formData.password,
+//           }),
+//         });
+//         const data = await res.json();
+//         if (res.ok) {
+//           setMessage("Авторизация успешна!");
+//           setUser(data.user);
+//           router.push("/personal-account");
+//         } else {
+//           setMessage(data.error || "Ошибка авторизации");
+//         }
+//       }
+//     } catch (err: any) {
+//       setMessage("Ошибка: " + err.message);
+//     }
+//   };
+
+//   return (
+//     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground transition-colors duration-300">
+//       <div className="w-full max-w-md bg-background text-foreground shadow-lg rounded-lg p-6 border border-gray-300 dark:border-gray-700">
+//         <h1 className="text-2xl font-bold mb-4 text-center">
+//           {isRegister ? "Регистрация" : "Авторизация"}
+//         </h1>
+
+//         <form className="space-y-4" onSubmit={handleSubmit}>
+//           {isRegister && (
+//             <>
+//               <div>
+//                 <label className="block mb-1">Код</label>
+//                 <input
+//                   type="text"
+//                   name="code"
+//                   value={formData.code}
+//                   onChange={handleChange}
+//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+//                   required
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block mb-1">Наименование</label>
+//                 <input
+//                   type="text"
+//                   name="name"
+//                   value={formData.name}
+//                   onChange={handleChange}
+//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+//                   required
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block mb-1">ИНН</label>
+//                 <input
+//                   type="text"
+//                   name="inn"
+//                   value={formData.inn}
+//                   onChange={handleChange}
+//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+//                   required
+//                   maxLength={12} // максимум 12 символов
+//                   pattern="\d{10,12}"
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block mb-1">КПП</label>
+//                 <input
+//                   type="text"
+//                   name="kpp"
+//                   value={formData.kpp}
+//                   onChange={handleChange}
+//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+//                   maxLength={9} // максимум 9 символов
+//                   pattern="\d{9}"
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block mb-1">Юридический адрес</label>
+//                 <input
+//                   type="text"
+//                   name="legal_address"
+//                   value={formData.legal_address}
+//                   onChange={handleChange}
+//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+//                 />
+//               </div>
+//               <div>
+//                 <label className="block mb-1">Фактический адрес</label>
+//                 <input
+//                   type="text"
+//                   name="actual_address"
+//                   value={formData.actual_address}
+//                   onChange={handleChange}
+//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+//                 />
+//               </div>
+//             </>
+//           )}
+
+//           <div>
+//             <label className="block mb-1">Email</label>
+//             <input
+//               type="email"
+//               name="email"
+//               value={formData.email}
+//               onChange={handleChange}
+//               className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+//               required
+//             />
+//           </div>
+
+//           <div className="relative">
+//             <label className="block mb-1">Пароль</label>
+//             <input
+//               type={showPassword ? "text" : "password"}
+//               name="password"
+//               value={formData.password}
+//               onChange={handleChange}
+//               className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
+//               required
+//               minLength={6}
+//             />
+//             <button
+//               type="button"
+//               onClick={() => setShowPassword(!showPassword)}
+//               className="absolute right-3 top-8 text-gray-500 dark:text-gray-400"
+//             >
+//               {showPassword ? <FaEyeSlash /> : <FaEye />}
+//             </button>
+//           </div>
+
+//           <button
+//             type="submit"
+//             className="w-full py-2 rounded font-medium bg-yellow-300 text-gray-800 shadow-md hover:shadow-lg hover:bg-yellow-400 transition"
+//           >
+//             {isRegister ? "Зарегистрироваться" : "Войти"}
+//           </button>
+//         </form>
+
+//         {message && (
+//           <p className="mt-4 text-center text-sm text-red-500">{message}</p>
+//         )}
+
+//         <p className="mt-4 text-center text-sm">
+//           {isRegister ? (
+//             <>
+//               Уже есть аккаунт?{" "}
+//               <button
+//                 onClick={() => setIsRegister(false)}
+//                 className="text-blue-600 hover:underline"
+//               >
+//                 Войти
+//               </button>
+//             </>
+//           ) : (
+//             <>
+//               Нет аккаунта?{" "}
+//               <button
+//                 onClick={() => setIsRegister(true)}
+//                 className="text-blue-600 hover:underline"
+//               >
+//                 Зарегистрироваться
+//               </button>
+//             </>
+//           )}
+//         </p>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+++++another auth/page.tsx================================================
+
+// "use client";
+
+// import { useState } from "react";
+// import {
+//   FaEye,
+//   FaEyeSlash,
+//   FaLeaf,
+//   FaEnvelope,
+//   FaLock,
+//   FaShieldAlt,
+//   FaSyncAlt,
+//   FaChartLine,
+//   FaHeadset,
+//   FaCheckCircle,
+//   FaSignInAlt,
+//   FaUserPlus,
+// } from "react-icons/fa";
+// import { useRouter } from "next/navigation";
+// import { useUserStore } from "@/store/userStore";
+
+// export default function AuthPage() {
+//   const [isRegister, setIsRegister] = useState(false);
+//   const [showPassword, setShowPassword] = useState(false);
+//   const router = useRouter();
+//   const setUser = useUserStore((state) => state.setUser);
+
+//   const [formData, setFormData] = useState({
+//     email: "",
+//     password: "",
+//     code: "",
+//     name: "",
+//     inn: "",
+//     kpp: "",
+//     legal_address: "",
+//     actual_address: "",
+//   });
+
+//   const [message, setMessage] = useState("");
+
+//   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     setFormData({ ...formData, [e.target.name]: e.target.value });
+//   };
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     setMessage("");
+
+//     try {
+//       if (isRegister) {
+//         const res = await fetch("/api/register", {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify({
+//             email: formData.email,
+//             password: formData.password,
+//             code: formData.code,
+//             name: formData.name,
+//             inn: formData.inn,
+//             kpp: formData.kpp,
+//             legal_address: formData.legal_address,
+//             actual_address: formData.actual_address,
+//           }),
+//         });
+//         const data = await res.json();
+//         if (res.ok) {
+//           setMessage("Регистрация успешна!");
+//           setIsRegister(false);
+//           setUser(data.user);
+//           // Добавим задержку для отображения сообщения
+//           setTimeout(() => {
+//             router.push("/personal-account");
+//           }, 1500);
+//         } else {
+//           setMessage(data.error || "Ошибка регистрации");
+//         }
+//       } else {
+//         const res = await fetch("/api/login", {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify({
+//             email: formData.email,
+//             password: formData.password,
+//           }),
+//         });
+//         const data = await res.json();
+//         if (res.ok) {
+//           setMessage("Авторизация успешна!");
+//           setUser(data.user);
+//           // Сохраняем токен если он есть
+//           if (data.accessToken) {
+//             localStorage.setItem("access_token", data.accessToken);
+//           }
+//           // Обновляем userStore
+//           localStorage.setItem(
+//             "user-storage",
+//             JSON.stringify({ user: data.user })
+//           );
+
+//           setTimeout(() => {
+//             router.push("/personal-account");
+//             router.refresh(); // Принудительно обновляем страницу
+//           }, 1500);
+//         } else {
+//           setMessage(data.error || "Ошибка авторизации");
+//         }
+//       }
+//     } catch (err: any) {
+//       setMessage("Ошибка: " + err.message);
+//     }
+//   };
+
+//   const buttonColor = "#3E4F5F";
+//   const buttonColorHover = "#2d3a47";
+
+//   return (
+//     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-100">
+//       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+//         <div className="flex flex-col lg:flex-row">
+//           {/* Левая часть - Форма */}
+//           <div className="lg:w-1/2 p-8 md:p-10 lg:p-12">
+//             <div className="flex items-center mb-8">
+//               <FaLeaf className="text-2xl" style={{ color: buttonColor }} />
+//               <h1 className="text-2xl font-semibold text-gray-900 ml-3">
+//                 Приложение
+//               </h1>
+//             </div>
+
+//             <h2 className="text-2xl md:text-3xl font-medium text-gray-900 mb-2">
+//               {isRegister ? "Регистрация" : "Вход в систему"}
+//             </h2>
+//             <p className="text-gray-600 mb-8">
+//               {isRegister
+//                 ? "Заполните форму для создания учетной записи"
+//                 : "Пожалуйста, введите свои учетные данные для доступа к вашему аккаунту"}
+//             </p>
+
+//             {/* Сообщение */}
+//             {message && (
+//               <div
+//                 className={`p-4 rounded-xl mb-6 flex items-center justify-center ${
+//                   message.includes("успешн")
+//                     ? "bg-green-500 text-white"
+//                     : "bg-red-100 text-red-700 border border-red-200"
+//                 }`}
+//               >
+//                 {message.includes("успешн") && (
+//                   <FaCheckCircle className="mr-2" />
+//                 )}
+//                 <span className="font-medium">{message}</span>
+//               </div>
+//             )}
+
+//             <form onSubmit={handleSubmit} className="space-y-6">
+//               {isRegister && (
+//                 <>
+//                   <div>
+//                     <label className="block text-gray-700 font-medium mb-2 text-sm">
+//                       Код
+//                     </label>
+//                     <input
+//                       type="text"
+//                       name="code"
+//                       value={formData.code}
+//                       onChange={handleChange}
+//                       className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
+//                       required
+//                     />
+//                   </div>
+
+//                   <div>
+//                     <label className="block text-gray-700 font-medium mb-2 text-sm">
+//                       Наименование
+//                     </label>
+//                     <input
+//                       type="text"
+//                       name="name"
+//                       value={formData.name}
+//                       onChange={handleChange}
+//                       className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
+//                       required
+//                     />
+//                   </div>
+
+//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//                     <div>
+//                       <label className="block text-gray-700 font-medium mb-2 text-sm">
+//                         ИНН
+//                       </label>
+//                       <input
+//                         type="text"
+//                         name="inn"
+//                         value={formData.inn}
+//                         onChange={handleChange}
+//                         className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
+//                         required
+//                         maxLength={12}
+//                         pattern="\d{10,12}"
+//                       />
+//                     </div>
+
+//                     <div>
+//                       <label className="block text-gray-700 font-medium mb-2 text-sm">
+//                         КПП
+//                       </label>
+//                       <input
+//                         type="text"
+//                         name="kpp"
+//                         value={formData.kpp}
+//                         onChange={handleChange}
+//                         className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
+//                         maxLength={9}
+//                         pattern="\d{9}"
+//                       />
+//                     </div>
+//                   </div>
+
+//                   <div>
+//                     <label className="block text-gray-700 font-medium mb-2 text-sm">
+//                       Юридический адрес
+//                     </label>
+//                     <input
+//                       type="text"
+//                       name="legal_address"
+//                       value={formData.legal_address}
+//                       onChange={handleChange}
+//                       className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
+//                     />
+//                   </div>
+
+//                   <div>
+//                     <label className="block text-gray-700 font-medium mb-2 text-sm">
+//                       Фактический адрес
+//                     </label>
+//                     <input
+//                       type="text"
+//                       name="actual_address"
+//                       value={formData.actual_address}
+//                       onChange={handleChange}
+//                       className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
+//                     />
+//                   </div>
+//                 </>
+//               )}
+
+//               <div>
+//                 <label className="block text-gray-700 font-medium mb-2 text-sm">
+//                   Электронная почта
+//                 </label>
+//                 <div className="relative">
+//                   <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+//                   <input
+//                     type="email"
+//                     name="email"
+//                     value={formData.email}
+//                     onChange={handleChange}
+//                     className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
+//                     required
+//                     placeholder="ваш.email@пример.com"
+//                   />
+//                 </div>
+//               </div>
+
+//               <div>
+//                 <label className="block text-gray-700 font-medium mb-2 text-sm">
+//                   Пароль
+//                 </label>
+//                 <div className="relative">
+//                   <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+//                   <input
+//                     type={showPassword ? "text" : "password"}
+//                     name="password"
+//                     value={formData.password}
+//                     onChange={handleChange}
+//                     className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
+//                     required
+//                     minLength={6}
+//                     placeholder="Введите ваш пароль"
+//                   />
+//                   <button
+//                     type="button"
+//                     onClick={() => setShowPassword(!showPassword)}
+//                     className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+//                   >
+//                     {showPassword ? <FaEyeSlash /> : <FaEye />}
+//                   </button>
+//                 </div>
+//               </div>
+
+//               {!isRegister && (
+//                 <div className="flex justify-between items-center">
+//                   <div className="flex items-center">
+//                     <input
+//                       type="checkbox"
+//                       id="remember"
+//                       className="w-4 h-4 rounded focus:ring-gray-500/20 border-gray-300"
+//                       style={{ accentColor: buttonColor }}
+//                     />
+//                     <label
+//                       htmlFor="remember"
+//                       className="ml-2 text-gray-700 text-sm"
+//                     >
+//                       Запомнить меня
+//                     </label>
+//                   </div>
+//                   <button
+//                     type="button"
+//                     className="text-sm font-medium hover:underline"
+//                     style={{ color: buttonColor }}
+//                   >
+//                     Забыли пароль?
+//                   </button>
+//                 </div>
+//               )}
+
+//               <button
+//                 type="submit"
+//                 className="w-full text-white py-4 px-6 rounded-xl font-medium transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90 flex items-center justify-center gap-2"
+//                 style={{
+//                   backgroundColor: buttonColor,
+//                   boxShadow: "0 5px 15px rgba(62, 79, 95, 0.15)",
+//                 }}
+//                 onMouseOver={(e) => {
+//                   e.currentTarget.style.backgroundColor = buttonColorHover;
+//                 }}
+//                 onMouseOut={(e) => {
+//                   e.currentTarget.style.backgroundColor = buttonColor;
+//                 }}
+//               >
+//                 {isRegister ? (
+//                   <>
+//                     <FaUserPlus />
+//                     Зарегистрироваться
+//                   </>
+//                 ) : (
+//                   <>
+//                     <FaSignInAlt />
+//                     Войти
+//                   </>
+//                 )}
+//               </button>
+//             </form>
+
+//             <div className="text-center text-gray-600 text-sm mt-8">
+//               {isRegister ? (
+//                 <>
+//                   Уже есть аккаунт?{" "}
+//                   <button
+//                     onClick={() => setIsRegister(false)}
+//                     className="font-medium hover:underline"
+//                     style={{ color: buttonColor }}
+//                   >
+//                     Войти
+//                   </button>
+//                 </>
+//               ) : (
+//                 <>
+//                   Нет учетной записи?{" "}
+//                   <button
+//                     onClick={() => setIsRegister(true)}
+//                     className="font-medium hover:underline"
+//                     style={{ color: buttonColor }}
+//                   >
+//                     Зарегистрируйтесь
+//                   </button>
+//                 </>
+//               )}
+//             </div>
+//           </div>
+
+//           {/* Правая часть - Приветствие */}
+//           <div
+//             className="lg:w-1/2 p-8 md:p-10 lg:p-12 flex flex-col justify-center text-white"
+//             style={{ backgroundColor: "#3E4F5F" }}
+//           >
+//             <h2 className="text-2xl md:text-3xl font-medium mb-6">
+//               {isRegister ? "Добро пожаловать!" : "С возвращением!"}
+//             </h2>
+//             <p className="text-gray-100 mb-10 leading-relaxed">
+//               {isRegister
+//                 ? "Создайте учетную запись и получите доступ ко всем функциям нашей платформы. Мы гарантируем безопасность ваших данных и круглосуточную поддержку."
+//                 : "Мы рады снова видеть вас. Получите доступ ко всем функциям вашего аккаунта и продолжайте с того места, где остановились."}
+//             </p>
+
+//             <ul className="space-y-6">
+//               <li className="flex items-start">
+//                 <div className="bg-white/20 w-7 h-7 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+//                   <FaShieldAlt className="text-white text-sm" />
+//                 </div>
+//                 <span>Безопасность данных гарантирована</span>
+//               </li>
+//               <li className="flex items-start">
+//                 <div className="bg-white/20 w-7 h-7 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+//                   <FaSyncAlt className="text-white text-sm" />
+//                 </div>
+//                 <span>Синхронизация на всех устройствах</span>
+//               </li>
+//               <li className="flex items-start">
+//                 <div className="bg-white/20 w-7 h-7 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+//                   <FaChartLine className="text-white text-sm" />
+//                 </div>
+//                 <span>Аналитика и персонализация</span>
+//               </li>
+//               <li className="flex items-start">
+//                 <div className="bg-white/20 w-7 h-7 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+//                   <FaHeadset className="text-white text-sm" />
+//                 </div>
+//                 <span>Поддержка клиентов 24/7</span>
+//               </li>
+//             </ul>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+C:\Users\Администратор\Desktop\order-manager\order-manager\app\api\register\route.ts
+
+import { NextResponse } from "next/server";
+import { getConnection } from "@/lib/db";
+import bcrypt from "bcryptjs";
+
+export async function POST(req: Request) {
+  try {
+    const {
+      email,
+      password,
+      code,
+      name,
+      inn,
+      kpp,
+      legal_address,
+      actual_address,
+    } = await req.json();
+
+    
+    if (!email || !password || !code || !name || !inn) {
+      return NextResponse.json(
+        { error: "Email, пароль, код, наименование и ИНН обязательны" },
+        { status: 400 }
+      );
+    }
+
+    const conn = await getConnection();
+
+   
+    const [exists] = await conn.execute(
+      "SELECT id FROM users WHERE email = ?",
+      [email]
+    );
+    if ((exists as any[]).length > 0) {
+      return NextResponse.json(
+        { error: "Пользователь с таким email уже существует" },
+        { status: 409 }
+      );
+    }
+
+   
+    const hashed = await bcrypt.hash(password, 10);
+
+   
+    await conn.execute(
+      `INSERT INTO users 
+        (email, password, code, name, inn, kpp, legal_address, actual_address) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        email,
+        hashed,
+        code,
+        name,
+        inn,
+        kpp ?? null,
+        legal_address ?? null,
+        actual_address ?? null,
+      ]
+    );
+
+    return NextResponse.json(
+      { message: "Регистрация успешна" },
+      { status: 201 }
+    );
+  } catch (err: any) {
+    console.error("Register error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+
+

@@ -1,9 +1,11 @@
 "use client";
+
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
 
 interface SidebarProps {
   className?: string;
@@ -54,11 +56,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
       "px-4 py-3 text-gray-600 transition",
       "hover:bg-gray-50 hover:text-gray-800",
       "min-w-[100px]",
-
       "border-b-4 md:border-b-0 md:border-l-4 border-transparent",
-
       isActive
-        ? "border-b-[#5A6C7D] md:border-l-[#5A6C7D] bg-[#F8FAFC] md:bg-transparent"
+        ? "border-b-[#3E4F5F] md:border-l-[#3E4F5F] bg-[#F8FAFC] md:bg-transparent"
         : "",
     ].join(" ");
   };
@@ -69,17 +69,17 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         className ?? ""
       }`}
     >
-      {/* Logo */}
       <div className="flex items-center px-6 py-6 border-b border-gray-200">
         <i className="fas fa-building text-2xl text-gray-600 mr-3"></i>
         <h1 className="text-xl font-semibold text-gray-800">Личный кабинет</h1>
       </div>
 
-      {/* User profile */}
       {user && (
         <div className="flex items-center px-6 py-6 border-b border-gray-200">
-          <div className="w-14 h-14 rounded-full bg-linear-to-br from-gray-600 to-gray-800 flex items-center justify-center text-white text-lg font-medium mr-4">
-            {user.code ?? "??"}
+          <div className="w-14 h-14 rounded-full bg-linear-to-br from-[#3E4F5F] to-[#2d3a47] flex items-center justify-center text-white text-lg font-medium mr-4">
+            {user.name
+              ? (user.name[0] + (user.name[1] || ""))?.toUpperCase() || "??"
+              : "??"}
           </div>
           <div>
             <h3 className="text-lg font-medium text-gray-800">{user.name}</h3>
@@ -88,7 +88,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         </div>
       )}
 
-      {/* Navigation */}
       <nav className="py-4 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible justify-around">
         <Link
           href="/personal-account"
@@ -111,23 +110,44 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         </Link>
       </nav>
 
-      {/* Logout */}
-      <div className="px-6 py-6 border-t border-gray-200">
+      <div className="grow"></div>
+
+      <div className="px-6 py-6 border-t border-gray-200 mt-auto">
         {user ? (
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition"
+            className="w-full flex items-center justify-center px-4 py-3 rounded-lg text-white transition-all duration-300 hover:opacity-90"
+            style={{
+              backgroundColor: "#3E4F5F",
+              boxShadow: "0 4px 12px rgba(62, 79, 95, 0.15)",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = "#2d3a47";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = "#3E4F5F";
+            }}
           >
-            <i className="fas fa-sign-out-alt mr-2"></i>
-            Выйти из аккаунта
+            <FaSignOutAlt className="mr-3 transform rotate-180" />
+            <span className="font-medium">Выйти из аккаунта</span>
           </button>
         ) : (
           <Link
             href="/auth"
-            className="w-full flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition"
+            className="w-full flex items-center justify-center px-4 py-3 rounded-lg text-white transition-all duration-300 hover:opacity-90"
+            style={{
+              backgroundColor: "#3E4F5F",
+              boxShadow: "0 4px 12px rgba(62, 79, 95, 0.15)",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = "#2d3a47";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = "#3E4F5F";
+            }}
           >
-            <i className="fas fa-sign-in-alt mr-2"></i>
-            Войти
+            <FaSignInAlt className="mr-3" />
+            <span className="font-medium">Войти</span>
           </Link>
         )}
       </div>

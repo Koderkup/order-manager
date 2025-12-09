@@ -1,0 +1,85 @@
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><help_text>Order_products
+--
+id : int PK
+order_id : int FK
+product_id : int FK
+price : decimal
+quantity : int
+total : decimal (calc)</help_text><element><id>UMLClass</id><coordinates><x>80</x><y>20</y><w>150</w><h>230</h></coordinates><panel_attributes>Users
+--
+id : int PK
+role : enum
+email : varchar
+password : varchar
+access : boolean
+create_time : datetime
+code : varchar
+name : varchar
+inn : char(12)
+kpp : char(9)
+legal_address : varchar
+actual_address : varchar
+active : boolean
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>320</x><y>20</y><w>120</w><h>140</h></coordinates><panel_attributes>Contracts
+--
+id : int PK
+code : varchar
+name : varchar
+start_date : date
+end_date : date
+amount : decimal
+active : boolean</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>340</x><y>190</y><w>140</w><h>160</h></coordinates><panel_attributes>Specifications
+--
+id : int PK
+code : varchar
+name : varchar
+contract_id : int FK
+start_date : date
+end_date : date
+amount : decimal
+active : boolean</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>740</x><y>30</y><w>100</w><h>120</h></coordinates><panel_attributes>Products
+--
+id : int PK
+code : varchar
+name : varchar
+article : varchar
+price : decimal
+active : boolean</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>320</x><y>410</y><w>150</w><h>90</h></coordinates><panel_attributes>Specification_products
+--
+id : int PK
+specification_id : int FK
+product_id : int FK
+price : decimal</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>720</x><y>170</y><w>120</w><h>120</h></coordinates><panel_attributes>Order_products
+--
+id : int PK
+order_id : int FK
+product_id : int FK
+price : decimal
+quantity : int
+total : decimal (calc)</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>210</x><y>40</y><w>90</w><h>340</h></coordinates><panel_attributes>lt=&lt;-
+m1=1......*</panel_attributes><additional_attributes>10;310;70;310;70;10;20;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>80</x><y>260</y><w>140</w><h>170</h></coordinates><panel_attributes>Orders
+--
+id : int PK
+number : varchar
+order_date : date
+status : enum
+client_id : int FK
+contract_id : int FK
+specification_id : int FK
+amount : decimal</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>430</x><y>40</y><w>120</w><h>260</h></coordinates><panel_attributes>lt=&lt;-
+m1=1........*</panel_attributes><additional_attributes>50;230;90;230;90;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>210</x><y>40</y><w>370</w><h>360</h></coordinates><panel_attributes>lt=&lt;-
+m1=1.......*</panel_attributes><additional_attributes>10;330;350;330;350;10;230;10</additional_attributes></element><element><id>Relation</id><coordinates><x>460</x><y>210</y><w>160</w><h>280</h></coordinates><panel_attributes>lt=&lt;-
+m1=1.......*</panel_attributes><additional_attributes>10;250;140;250;140;10;20;10</additional_attributes></element><element><id>Relation</id><coordinates><x>210</x><y>210</y><w>440</w><h>210</h></coordinates><panel_attributes>lt=&lt;-
+m1=1......*</panel_attributes><additional_attributes>10;180;420;180;420;10;270;10</additional_attributes></element><element><id>Relation</id><coordinates><x>460</x><y>50</y><w>300</w><h>460</h></coordinates><panel_attributes>lt=&lt;-
+m1=1.......*</panel_attributes><additional_attributes>10;430;220;430;220;10;280;10</additional_attributes></element><element><id>Relation</id><coordinates><x>830</x><y>50</y><w>100</w><h>210</h></coordinates><panel_attributes>lt=&lt;-
+m1=1............*</panel_attributes><additional_attributes>10;180;30;180;30;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>280</x><y>30</y><w>640</w><h>560</h></coordinates><panel_attributes>lt=-
+m1=*
+m2=*
+Specification_productsтаблица связка многие ко многим&gt;</panel_attributes><additional_attributes>60;170;10;170;10;390;40;390;40;540;620;540;620;10;560;10</additional_attributes></element><element><id>Relation</id><coordinates><x>40</x><y>210</y><w>980</w><h>420</h></coordinates><panel_attributes>lt=&lt;-
+m1=1...........*</panel_attributes><additional_attributes>680;10;650;10;650;120;960;120;960;400;10;400;10;80;40;80</additional_attributes></element><element><id>Relation</id><coordinates><x>10</x><y>40</y><w>90</w><h>330</h></coordinates><panel_attributes>lt=&lt;-
+m1=*...........1</panel_attributes><additional_attributes>70;10;20;10;20;310;70;310</additional_attributes></element><element><id>Relation</id><coordinates><x>50</x><y>40</y><w>610</w><h>570</h></coordinates><panel_attributes>lt=&lt;-
+m1=*.....1</panel_attributes><additional_attributes>390;10;590;10;590;550;10;550;10;330;30;330</additional_attributes></element><element><id>Relation</id><coordinates><x>20</x><y>210</y><w>340</w><h>430</h></coordinates><panel_attributes>lt=&lt;-
+m1=*..1</panel_attributes><additional_attributes>320;10;280;10;280;410;10;410;10;170;60;170</additional_attributes></element><element><id>Relation</id><coordinates><x>10</x><y>30</y><w>1050</w><h>630</h></coordinates><panel_attributes>lt=-
+m1=*..*
+m2=*..*
+ Order_products таблица связка многие ко многим&gt;</panel_attributes><additional_attributes>70;240;10;240;10;610;1030;610;1030;10;890;10</additional_attributes></element><element><id>Relation</id><coordinates><x>830</x><y>160</y><w>230</w><h>40</h></coordinates><panel_attributes></panel_attributes><additional_attributes>10;20;210;20</additional_attributes></element></diagram>
