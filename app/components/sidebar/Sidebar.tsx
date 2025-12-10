@@ -16,6 +16,7 @@ import {
   FaCrown,
   FaUserTie,
   FaUserCircle,
+  FaUsers,
 } from "react-icons/fa";
 
 interface SidebarProps {
@@ -108,7 +109,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     }
   };
 
-
   const getRoleIconColor = () => {
     if (!user || !user.role) return "text-gray-500";
 
@@ -124,7 +124,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     }
   };
 
- 
   const getRoleText = () => {
     if (!user || !user.role) return "Пользователь";
 
@@ -241,6 +240,12 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           <FaTags className="w-6 mr-3" />
           <span>Прайс-лист</span>
         </Link>
+        {user && user.role === "admin" && (
+          <Link href="/users" className={linkClass("/users")}>
+            <FaUsers className="w-6 mr-3" />
+            <span>Клиеты</span>
+          </Link>
+        )}
       </nav>
 
       <div className="grow"></div>

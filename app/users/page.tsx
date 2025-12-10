@@ -5,7 +5,6 @@ import {
   FaUser,
   FaEnvelope,
   FaIdCard,
-  FaBuilding,
   FaCheckCircle,
   FaTimesCircle,
   FaArrowRight,
@@ -15,7 +14,6 @@ import {
   FaUserTie,
   FaCrown,
   FaUserCircle,
-  FaPhone,
   FaCalendarAlt,
 } from "react-icons/fa";
 
@@ -65,7 +63,7 @@ const UsersPage = () => {
     fetchUsers();
   }, []);
 
-  // Фильтрация пользователей
+  
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -110,7 +108,7 @@ const UsersPage = () => {
       });
 
       if (res.ok) {
-        // Обновляем локальное состояние
+      
         setUsers(
           users.map((user) =>
             user.id === userId ? { ...user, active: !currentActive } : user
@@ -418,7 +416,7 @@ const UsersPage = () => {
 
                         <button
                           onClick={() => {
-                            // Логика редактирования пользователя
+                         
                             alert(`Редактирование пользователя ${user.name}`);
                           }}
                           className="text-gray-600 hover:text-gray-800 font-medium flex items-center text-sm"
