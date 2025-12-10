@@ -83,7 +83,7 @@ export default function AuthPage() {
           setIsRegister(false);
           setUser(data.user);
           setTimeout(() => {
-            router.push("/personal-account");
+            router.push(`/personal-account/${data.user.id}`);
           }, 1500);
         } else {
           setMessage({
@@ -105,7 +105,7 @@ export default function AuthPage() {
           setMessage({ text: "Авторизация успешна!", type: "success" });
           setUser(data.user);
           setTimeout(() => {
-            router.push("/personal-account");
+            router.push(`/personal-account/${data.user.id}`);
           }, 1500);
         } else {
           setMessage({
