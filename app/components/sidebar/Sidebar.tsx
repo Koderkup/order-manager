@@ -48,7 +48,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     })();
   }, [setUser]);
 
-  // Функция для определения цвета ободка в зависимости от роли
   const getRoleBorderColor = () => {
     if (!user || !user.role) return "border-gray-300";
 
@@ -64,7 +63,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     }
   };
 
-  // Функция для определения цвета фона в зависимости от роли
   const getRoleBgColor = () => {
     if (!user || !user.role) return "bg-gray-100";
 
@@ -80,7 +78,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     }
   };
 
-  // Функция для определения цвета текста в зависимости от роли
   const getRoleTextColor = () => {
     if (!user || !user.role) return "text-gray-800";
 
@@ -96,7 +93,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     }
   };
 
-  // Функция для получения иконки в зависимости от роли
   const getRoleIcon = () => {
     if (!user || !user.role) return <FaUserCircle className="w-5 h-5" />;
 
@@ -112,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     }
   };
 
-  // Функция для получения цвета иконки в зависимости от роли
+
   const getRoleIconColor = () => {
     if (!user || !user.role) return "text-gray-500";
 
@@ -128,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     }
   };
 
-  // Функция для получения текста роли на русском
+ 
   const getRoleText = () => {
     if (!user || !user.role) return "Пользователь";
 
@@ -155,16 +151,25 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     }
     window.location.href = "/";
   };
+  const isActive = (href: string) => {
+    if (href === "/" && pathname === "/") {
+      return true;
+    }
+    if (href !== "/" && pathname.startsWith(href)) {
+      return true;
+    }
 
+    return false;
+  };
   const linkClass = (href: string) => {
-    const isActive = pathname === href;
+    const active = isActive(href);
     return [
       "flex flex-col items-center justify-center md:flex-row md:items-center md:justify-start",
       "px-4 py-3 text-gray-600 transition",
       "hover:bg-gray-50 hover:text-gray-800",
       "min-w-[100px]",
       "border-b-4 md:border-b-0 md:border-l-4 border-transparent",
-      isActive
+      active
         ? "border-b-[#3E4F5F] md:border-l-[#3E4F5F] bg-[#F8FAFC] md:bg-transparent"
         : "",
     ].join(" ");

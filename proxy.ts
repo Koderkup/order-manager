@@ -2,6 +2,35 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 
+
+const protectedRoutes = {
+  "/personal-account": {
+    allowedRoles: ["client", "manager", "admin"],
+    checkUserId: true, 
+    adminBypass: true, 
+  },
+  "/users": {
+    allowedRoles: ["admin"], 
+    checkUserId: false,
+    adminBypass: false,
+  },
+  "/contracts": {
+    allowedRoles: ["client", "manager", "admin"],
+    checkUserId: false,
+    adminBypass: true,
+  },
+  "/my-orders": {
+    allowedRoles: ["client", "manager", "admin"],
+    checkUserId: false,
+    adminBypass: true,
+  },
+  "/price": {
+    allowedRoles: ["client", "manager", "admin"],
+    checkUserId: false,
+    adminBypass: true,
+  },
+};
+
 export async function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("access_token")?.value;
   const pathname = request.nextUrl.pathname;
@@ -20,14 +49,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
- 
+  
   if (!accessToken) {
     return NextResponse.redirect(new URL("/auth", request.url));
   }
 
   let payload = null;
 
- 
+  
   try {
     payload = jwt.verify(
       accessToken,
@@ -43,58 +72,70 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/auth", request.url));
   }
 
+  
+  console.log(
+    `Checking access for ${pathname}, user role: ${payload.role}, user ID: ${
+      payload.userId || payload.id
+    }`
+  );
+
  
-  if (pathname.startsWith("/personal-account")) {
-  
-    if (payload.role !== "client" && payload.role !== "admin" && payload.role !== "manager") {
-      return NextResponse.redirect(new URL("/403", request.url));
-    }
+  let routeMatched = false;
 
-  
-    const pathSegments = pathname.split("/").filter(Boolean);
-    if (pathSegments.length >= 2) {
-      const userIdFromPath = pathSegments[1];
-      const userId = payload.userId || payload.id;
+  for (const [route, config] of Object.entries(protectedRoutes)) {
+    if (pathname.startsWith(route)) {
+      routeMatched = true;
 
-      if (
-        (payload.role === "client" || payload.role === "manager") &&
-        String(userIdFromPath) !== String(userId)
-      ) {
+      
+      if (!config.allowedRoles.includes(payload.role)) {
+        console.log(
+          `Access denied: role ${payload.role} not allowed for ${route}`
+        );
         return NextResponse.redirect(new URL("/403", request.url));
       }
+
     
+      if (config.checkUserId) {
+        const pathSegments = pathname.split("/").filter(Boolean);
+        if (pathSegments.length >= 2) {
+          const userIdFromPath = pathSegments[1];
+          const userId = payload.userId || payload.id;
+
+         
+          if (
+            (payload.role !== "admin" || !config.adminBypass) &&
+            String(userIdFromPath) !== String(userId)
+          ) {
+            console.log(
+              `Access denied: user ID mismatch (path: ${userIdFromPath}, token: ${userId})`
+            );
+            return NextResponse.redirect(new URL("/403", request.url));
+          }
+        }
+      }
+
+      console.log(`Access granted to ${pathname}`);
+      break; 
     }
   }
 
-  if (pathname.startsWith("/users") && payload.role !== "admin") {
+  if (!routeMatched && !pathname.startsWith("/api/")) {
+    console.log(
+      `Route ${pathname} not found in protected routes, denying access`
+    );
     return NextResponse.redirect(new URL("/403", request.url));
   }
 
-  if (
-    pathname.startsWith("/contracts") &&
-    payload.role !== "client" &&
-    payload.role !== "manager" &&
-    payload.role !== "admin"
-  ) {
-    return NextResponse.redirect(new URL("/403", request.url));
-  }
+  
+  if (pathname.startsWith("/api/")) {
+    const publicApiEndpoints = ["/api/auth", "/api/refresh", "/api/checkAuth"];
+    const isPublicApi = publicApiEndpoints.some((endpoint) =>
+      pathname.startsWith(endpoint)
+    );
 
-  if (
-    pathname.startsWith("/my-orders") &&
-    payload.role !== "client" &&
-    payload.role !== "manager" &&
-    payload.role !== "admin"
-  ) {
-    return NextResponse.redirect(new URL("/403", request.url));
-  }
-
-  if (
-    pathname.startsWith("/price") &&
-    payload.role !== "client" &&
-    payload.role !== "manager" &&
-    payload.role !== "admin"
-  ) {
-    return NextResponse.redirect(new URL("/403", request.url));
+    if (!isPublicApi && !accessToken) {
+      return NextResponse.redirect(new URL("/auth", request.url));
+    }
   }
 
   return NextResponse.next();

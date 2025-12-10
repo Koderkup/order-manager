@@ -16,20 +16,23 @@ export interface User {
   active: boolean;
 }
 
-
 interface UserState {
-  user: User | null;
+  user: User | null; 
+  viewedUser: User | null; 
   setUser: (user: User | null) => void;
+  setViewedUser: (user: User | null) => void;
 }
 
 export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
       user: null,
+      viewedUser: null,
       setUser: (user) => set({ user }),
+      setViewedUser: (user) => set({ viewedUser: user }),
     }),
     {
-      name: "user-storage", 
+      name: "user-storage",
     }
   )
 );
