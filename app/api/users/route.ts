@@ -1,9 +1,9 @@
-// app/api/users/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { getConnection } from "@/lib/db";
-
+import { PoolConnection } from "mysql2/promise";
 export async function GET(request: NextRequest) {
+  let conn: PoolConnection | null = null;
   try {
     const accessToken = request.cookies.get("access_token")?.value;
 
@@ -16,18 +16,17 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_JWT_SECRET!
     ) as any;
 
-    // Только админы могут видеть список всех пользователей
     if (payload.role !== "admin") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const conn = await getConnection();
+     conn = await getConnection();
     const [rows] = await conn.execute(
       `SELECT id, email, name, role, inn, kpp, legal_address, actual_address, 
        code, access, create_time, active 
        FROM users ORDER BY create_time DESC`
     );
-
+    console.log(rows);
     return NextResponse.json({
       success: true,
       users: rows,
@@ -35,5 +34,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } finally {
+    if (conn) conn.release(); 
   }
 }

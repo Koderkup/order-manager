@@ -37,9 +37,9 @@ const UsersPage = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    // Загружаем пользователей с API
+
     const fetchUsers = async () => {
       try {
         const res = await fetch("/api/users", {
@@ -63,7 +63,6 @@ const UsersPage = () => {
     fetchUsers();
   }, []);
 
-  
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -108,7 +107,6 @@ const UsersPage = () => {
       });
 
       if (res.ok) {
-      
         setUsers(
           users.map((user) =>
             user.id === userId ? { ...user, active: !currentActive } : user
@@ -158,6 +156,43 @@ const UsersPage = () => {
     const date = new Date(dateString);
     return date.toLocaleDateString("ru-RU");
   };
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch("/api/users", {
+          method: "GET",
+          credentials: "include",
+        });
+
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        if (data && Array.isArray(data.users)) {
+          setUsers(data.users);
+        } else {
+          console.warn("Некорректный формат данных:", data);
+          setUsers([]); 
+        }
+
+        setError(null); 
+      } catch (error) {
+        console.error("Ошибка загрузки пользователей:", error);
+        setError(
+          "Не удалось загрузить пользователей. Проверьте подключение к сети."
+        );
+        setUsers([]); 
+      } finally {
+        setLoading(false); 
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   if (loading) {
     return (
@@ -416,7 +451,6 @@ const UsersPage = () => {
 
                         <button
                           onClick={() => {
-                         
                             alert(`Редактирование пользователя ${user.name}`);
                           }}
                           className="text-gray-600 hover:text-gray-800 font-medium flex items-center text-sm"

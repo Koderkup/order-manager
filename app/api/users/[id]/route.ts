@@ -1,28 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { getConnection } from "@/lib/db";
-
+import { PoolConnection } from "mysql2/promise";
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let conn: PoolConnection | null = null;
   try {
- 
     const { id } = await params;
 
-    console.log(`[API] GET /api/users/${id} called`);
-
-
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log("[API] No or invalid Authorization header");
+    let accessToken = request.cookies.get("access_token")?.value;
+    if (!accessToken) {
+      console.log("[API] No token found (cookie or header)");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const accessToken = authHeader.substring(7); // Убираем "Bearer " префикс
-    console.log("[API] Token from Authorization header");
-
     let payload;
     try {
       payload = jwt.verify(
@@ -48,7 +40,7 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const conn = await getConnection();
+    conn = await getConnection();
     console.log(`[API] Querying user with ID: ${id}`);
 
     const [rows] = await conn.execute(
@@ -73,5 +65,7 @@ export async function GET(
   } catch (error) {
     console.error("[API] Error fetching user:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } finally {
+    if (conn) conn.release();
   }
 }
