@@ -16,7 +16,8 @@ import {
   FaUserCircle,
   FaCalendarAlt,
 } from "react-icons/fa";
-
+import { useToast } from "@/app/ToastProvider";
+import ConfirmModal from "../components/ui/ConfirmModal";
 interface User {
   id: number;
   name: string;
@@ -38,8 +39,9 @@ const UsersPage = () => {
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const { notifyInfo } = useToast();
+  const [isModalOpen, setModalOpen] = useState(false);
   useEffect(() => {
-
     const fetchUsers = async () => {
       try {
         const res = await fetch("/api/users", {
@@ -86,18 +88,10 @@ const UsersPage = () => {
   };
 
   const handleToggleActive = async (userId: number, currentActive: boolean) => {
-    if (
-      !confirm(
-        `Вы уверены, что хотите ${
-          currentActive ? "деактивировать" : "активировать"
-        } этого пользователя?`
-      )
-    ) {
-      return;
-    }
+      setModalOpen(true);
 
     try {
-      const res = await fetch(`/api/users/${userId}/toggle-active`, {
+      const res = await fetch(`/api/users/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -112,17 +106,17 @@ const UsersPage = () => {
             user.id === userId ? { ...user, active: !currentActive } : user
           )
         );
-        alert(
+        notifyInfo(
           `Пользователь успешно ${
             currentActive ? "деактивирован" : "активирован"
           }`
         );
       } else {
-        alert("Ошибка при обновлении статуса пользователя");
+        notifyInfo("Ошибка при обновлении статуса пользователя");
       }
     } catch (error) {
       console.error("Ошибка обновления:", error);
-      alert("Произошла ошибка при обновлении статуса");
+      notifyInfo("Произошла ошибка при обновлении статуса");
     }
   };
 
@@ -165,7 +159,6 @@ const UsersPage = () => {
           credentials: "include",
         });
 
-
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
@@ -176,18 +169,18 @@ const UsersPage = () => {
           setUsers(data.users);
         } else {
           console.warn("Некорректный формат данных:", data);
-          setUsers([]); 
+          setUsers([]);
         }
 
-        setError(null); 
+        setError(null);
       } catch (error) {
         console.error("Ошибка загрузки пользователей:", error);
         setError(
           "Не удалось загрузить пользователей. Проверьте подключение к сети."
         );
-        setUsers([]); 
+        setUsers([]);
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
@@ -229,8 +222,8 @@ const UsersPage = () => {
               <button
                 className="px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium"
                 onClick={() => {
-                  // Здесь можно добавить логику создания нового пользователя
-                  alert("Функция создания нового пользователя");
+                  // Здесь нужно добавить логику создания нового пользователя
+                  notifyInfo("Функция создания нового пользователя");
                 }}
               >
                 + Добавить пользователя
@@ -451,7 +444,9 @@ const UsersPage = () => {
 
                         <button
                           onClick={() => {
-                            alert(`Редактирование пользователя ${user.name}`);
+                            notifyInfo(
+                              `Редактирование пользователя ${user.name}`
+                            );
                           }}
                           className="text-gray-600 hover:text-gray-800 font-medium flex items-center text-sm"
                         >
@@ -550,6 +545,15 @@ const UsersPage = () => {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={isModalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={()=>{}}
+        message={`Вы уверены, что хотите ${
+          users ? "деактивировать" : "активировать"
+        } этого пользователя?`}
+      />
+      ;
     </div>
   );
 };
