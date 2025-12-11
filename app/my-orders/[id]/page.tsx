@@ -1,9 +1,326 @@
-import React from 'react'
+'use client'
+import { useState } from "react";
+import { FaTrash } from "react-icons/fa";
+const Page = () => {
+  const [activePage, setActivePage] = useState("orders");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [orderItems, setOrderItems] = useState([
+    { id: 1, name: "Товар 1", quantity: 1, price: 10000, total: 10000 },
+    { id: 2, name: "Товар 2", quantity: 2, price: 5000, total: 10000 },
+  ]);
 
-const page = () => {
+  const handleAddItem = () => {
+    const newId =
+      orderItems.length > 0
+        ? Math.max(...orderItems.map((item) => item.id)) + 1
+        : 1;
+    setOrderItems([
+      ...orderItems,
+      { id: newId, name: `Товар ${newId}`, quantity: 1, price: 0, total: 0 },
+    ]);
+  };
+
+  const handleDeleteItem = (id: number) => {
+    if (orderItems.length > 1) {
+      setOrderItems(orderItems.filter((item) => item.id !== id));
+    }
+  };
+
+
+  const handleItemChange = (
+    id: number,
+    field: string,
+    value: string | number
+  ) => {
+    setOrderItems(
+      orderItems.map((item) => {
+        if (item.id === id) {
+          const updatedItem = { ...item, [field]: value };
+          if (field === "quantity" || field === "price") {
+            updatedItem.total = updatedItem.quantity * updatedItem.price;
+          }
+          return updatedItem;
+        }
+        return item;
+      })
+    );
+  };
+
+  const totalAmount = orderItems.reduce((sum, item) => sum + item.total, 0);
+
+  const orders = [
+    {
+      id: "#78901",
+      date: "20.05.2023",
+      amount: "25 000 ₽",
+      status: "Выполнен",
+      statusClass: "status-completed",
+    },
+    {
+      id: "#78900",
+      date: "15.05.2023",
+      amount: "18 500 ₽",
+      status: "Выполнен",
+      statusClass: "status-completed",
+    },
+    {
+      id: "#78899",
+      date: "10.05.2023",
+      amount: "32 000 ₽",
+      status: "В обработке",
+      statusClass: "status-processing",
+    },
+    {
+      id: "#78895",
+      date: "05.05.2023",
+      amount: "15 000 ₽",
+      status: "Отменен",
+      statusClass: "status-cancelled",
+    },
+    {
+      id: "#78890",
+      date: "28.04.2023",
+      amount: "42 000 ₽",
+      status: "Выполнен",
+      statusClass: "status-completed",
+    },
+  ];
+
+  
+  
+
   return (
-    <div>page</div>
-  )
-}
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+      <div className="flex min-h-screen">
+        <div className="flex-1 p-8 overflow-auto">
+          {/* Заголовок */}
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-medium text-gray-800">Заказы</h2>
+          </div>
+          {/* Контент страницы */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 min-h-[500px] p-8">
+            {activePage === "orders" && (
+              <div className="animate-fadeIn">
+                <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-200">
+                  <h3 className="text-2xl font-medium text-gray-800">Заказы</h3>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-6 py-3 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all flex items-center cursor-pointer"
+                  >
+                    <span className="mr-2">+</span>
+                    Создать заказ
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="text-left p-4 text-gray-700 font-semibold">
+                          Номер заказа
+                        </th>
+                        <th className="text-left p-4 text-gray-700 font-semibold">
+                          Дата
+                        </th>
+                        <th className="text-left p-4 text-gray-700 font-semibold">
+                          Сумма
+                        </th>
+                        <th className="text-left p-4 text-gray-700 font-semibold">
+                          Статус
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.map((order, index) => (
+                        <tr
+                          key={index}
+                          className="border-b border-gray-100 hover:bg-gray-50"
+                        >
+                          <td className="p-4 font-medium">{order.id}</td>
+                          <td className="p-4">{order.date}</td>
+                          <td className="p-4 font-medium">{order.amount}</td>
+                          <td className="p-4">
+                            <span
+                              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                order.statusClass === "status-completed"
+                                  ? "bg-green-50 text-green-700"
+                                  : order.statusClass === "status-processing"
+                                  ? "bg-yellow-50 text-yellow-700"
+                                  : "bg-red-50 text-red-700"
+                              }`}
+                            >
+                              {order.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      {/* Модальное окно создания заказа */}
+      {isModalOpen && (
+        <div className="fixed inset-0  bg-black/40 bg-opacity-40 backdrop-blur-sm z-40 flex items-center justify-center">
+          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-2xl font-medium text-gray-800">
+                Создание нового заказа
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+              >
+                <span>×</span>
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="mb-8">
+                <h4 className="text-lg font-medium text-gray-800 mb-4">
+                  Информация о заказе
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block mb-2 text-gray-700">Договор</label>
+                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                      <option>ДГ-2023-001 - ООО "Ромашка"</option>
+                      <option>ДГ-2023-002 - ИП Иванов И.И.</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block mb-2 text-gray-700">
+                      Дата заказа
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      placeholder="Выберите дату"
+                    />
+                  </div>
+                </div>
+              </div>
 
-export default page
+              <div>
+                <h4 className="text-lg font-medium text-gray-800 mb-4">
+                  Позиции заказа
+                </h4>
+                <div className="overflow-x-auto mb-6">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="p-3 text-left">Номенклатура</th>
+                        <th className="p-3 text-left">Количество</th>
+                        <th className="p-3 text-left">Цена</th>
+                        <th className="p-3 text-left">Сумма</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orderItems.map((item) => (
+                        <tr key={item.id} className="border-b">
+                          <td className="p-3">
+                            <input
+                              type="text"
+                              value={item.name}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "name",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-3 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "quantity",
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
+                              className="w-full px-3 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input
+                              type="number"
+                              value={item.price}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "price",
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
+                              className="w-full px-3 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-3 font-medium">
+                            {item.total.toLocaleString()} ₽
+                          </td>
+                          <td className="p-3">
+                            <button
+                              onClick={() => handleDeleteItem(item.id)}
+                              disabled={orderItems.length <= 1}
+                              className={`p-2 rounded-lg transition-all ${
+                                orderItems.length <= 1
+                                  ? "opacity-30 cursor-not-allowed"
+                                  : "text-red-500 hover:text-red-700 hover:bg-red-50"
+                              }`}
+                              title={
+                                orderItems.length <= 1
+                                  ? "Должен остаться хотя бы один товар"
+                                  : "Удалить строку"
+                              }
+                            >
+                              <FaTrash className="w-5 h-5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <button
+                  onClick={handleAddItem}
+                  className="px-5 py-2 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all"
+                >
+                  + Добавить товар
+                </button>
+
+                <div className="mt-6 pt-6 border-t text-right">
+                  <div className="text-xl font-semibold">
+                    Итого: {totalAmount.toLocaleString()} ₽
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                >
+                  Отмена
+                </button>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-6 py-3 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all"
+                >
+                  Создать заказ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Page;
