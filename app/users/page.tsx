@@ -41,6 +41,12 @@ const UsersPage = () => {
   const [error, setError] = useState<string | null>(null);
   const { notifyInfo } = useToast();
   const [isModalOpen, setModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{
+    id: number;
+    active: boolean;
+    name: string;
+  } | null>(null);
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -87,10 +93,18 @@ const UsersPage = () => {
     window.location.href = `/personal-account/${userId}`;
   };
 
-  const handleToggleActive = async (userId: number, currentActive: boolean) => {
-      setModalOpen(true);
+  const openConfirmModal = (
+    userId: number,
+    currentActive: boolean,
+    userName: string
+  ) => {
+    setSelectedUser({ id: userId, active: currentActive, name: userName });
+    setModalOpen(true);
+  };
 
-    try {
+  const handleToggleActive = async (userId: number, currentActive: boolean) => {
+    if (!selectedUser) return;
+      try {
       const res = await fetch(`/api/users/${userId}`, {
         method: "PUT",
         headers: {
@@ -421,7 +435,7 @@ const UsersPage = () => {
 
                         <button
                           onClick={() =>
-                            handleToggleActive(user.id, user.active)
+                            openConfirmModal(user.id, user.active, user.name)
                           }
                           className={`text-sm font-medium flex items-center ${
                             user.active
@@ -547,15 +561,28 @@ const UsersPage = () => {
       </div>
       <ConfirmModal
         isOpen={isModalOpen}
-        onClose={() => setModalOpen(false)}
-        onConfirm={()=>{}}
-        message={`Вы уверены, что хотите ${
-          users ? "деактивировать" : "активировать"
-        } этого пользователя?`}
+        onClose={() => {
+          setModalOpen(false);
+          setSelectedUser(null);
+        }}
+        onConfirm={() => {
+          if (selectedUser) {
+            handleToggleActive(selectedUser.id, selectedUser.active);
+          }
+        }}
+        message={
+          selectedUser
+            ? `Вы уверены, что хотите ${
+                selectedUser.active ? "деактивировать" : "активировать"
+              } пользователя "${selectedUser.name}"?`
+            : ""
+        }
+        confirmText={selectedUser?.active ? "Деактивировать" : "Активировать"}
+        confirmColor={selectedUser?.active ? "red" : "green"}
       />
-      ;
     </div>
   );
 };
+
 
 export default UsersPage;
