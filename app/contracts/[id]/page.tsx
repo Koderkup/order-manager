@@ -12,8 +12,9 @@ import {
   FaFilter,
   FaEye,
 } from "react-icons/fa";
-
+import { useToast } from "@/app/ToastProvider";
 const ContractsPage = () => {
+  const {notifyInfo} = useToast();
   const [contracts] = useState([
     {
       id: "12345",
@@ -80,7 +81,7 @@ const ContractsPage = () => {
   });
 
   const handleViewPricing = (contractId: string) => {
-    alert(`Переход к прайс-листу договора №${contractId}`);
+    notifyInfo(`Переход к прайс-листу договора №${contractId}`);
   };
 
   return (
@@ -237,7 +238,7 @@ const ContractsPage = () => {
 
                         <button
                           onClick={() =>
-                            alert(`Просмотр договора №${contract.id}`)
+                            notifyInfo(`Просмотр договора №${contract.id}`)
                           }
                           className="text-gray-600 hover:text-gray-800 font-medium flex items-center"
                         >
