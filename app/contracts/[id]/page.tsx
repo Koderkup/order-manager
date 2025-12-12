@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaFileContract,
   FaCalendarAlt,
@@ -13,9 +13,18 @@ import {
   FaEye,
 } from "react-icons/fa";
 import { useToast } from "@/app/ToastProvider";
+import { User, useUserStore } from "@/store/userStore";
+
 const ContractsPage = () => {
-  const {notifyInfo} = useToast();
-  const [contracts] = useState([
+  const user = useUserStore((state) => state.user);
+  const [filter, setFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [contracts, setContracts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { notifyInfo, notifyError, notifySuccess } = useToast();
+
+
+  const [tempСontracts] = useState([
     {
       id: "12345",
       name: "Договор №12345 на поставку оборудования",
@@ -66,10 +75,34 @@ const ContractsPage = () => {
     },
   ]);
 
-  const [filter, setFilter] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
+ 
+    // useEffect(() => {
+    //   const fetchContracts = async () => {
+    //     try {
+    //       const res = await fetch(`/api/contracts`, {
+    //         method: "GET",
+    //         credentials: "include",
+    //       });
 
-  const filteredContracts = contracts.filter((contract) => {
+    //       if (res.ok) {
+    //         const data = await res.json();
+    //         setContracts(data.contracts || []);
+    //         notifySuccess("Договоры успешно загружены")
+    //       } else {
+    //         notifyError("Ошибка загрузки пользователей");
+    //       }
+    //     } catch (error) {
+    //       notifyError(`Ошибка сети: ${error}`);
+    //     } finally {
+    //       setLoading(false);
+    //     }
+    //   };
+
+    //   fetchContracts();
+    // }, []);
+
+
+  const filteredContracts = tempСontracts.filter((contract) => {
     const matchesSearch =
       contract.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contract.id.includes(searchTerm);
@@ -257,7 +290,7 @@ const ContractsPage = () => {
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="text-gray-600 text-sm mb-4 md:mb-0">
-                Показано {filteredContracts.length} из {contracts.length}{" "}
+                Показано {filteredContracts.length} из {tempСontracts.length}{" "}
                 договоров
               </div>
 
@@ -286,7 +319,7 @@ const ContractsPage = () => {
               <div>
                 <p className="text-gray-600 text-sm">Всего договоров</p>
                 <p className="text-3xl font-semibold text-gray-900 mt-1">
-                  {contracts.length}
+                  {tempСontracts.length}
                 </p>
               </div>
               <div className="bg-blue-100 p-3 rounded-lg">
@@ -300,7 +333,7 @@ const ContractsPage = () => {
               <div>
                 <p className="text-gray-600 text-sm">Активные договоры</p>
                 <p className="text-3xl font-semibold text-gray-900 mt-1">
-                  {contracts.filter((c) => c.status === "active").length}
+                  {tempСontracts.filter((c) => c.status === "active").length}
                 </p>
               </div>
               <div className="bg-green-100 p-3 rounded-lg">
@@ -314,7 +347,7 @@ const ContractsPage = () => {
               <div>
                 <p className="text-gray-600 text-sm">Общая сумма</p>
                 <p className="text-3xl font-semibold text-gray-900 mt-1">
-                  {contracts
+                  {tempСontracts
                     .reduce(
                       (sum, c) => sum + parseInt(c.amount.replace(/\s/g, "")),
                       0
