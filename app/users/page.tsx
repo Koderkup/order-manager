@@ -39,7 +39,7 @@ const UsersPage = () => {
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { notifyInfo } = useToast();
+  const { notifyInfo, notifyError } = useToast();
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{
     id: number;
@@ -104,7 +104,7 @@ const UsersPage = () => {
 
   const handleToggleActive = async (userId: number, currentActive: boolean) => {
     if (!selectedUser) return;
-      try {
+    try {
       const res = await fetch(`/api/users/${userId}`, {
         method: "PUT",
         headers: {
@@ -126,7 +126,7 @@ const UsersPage = () => {
           }`
         );
       } else {
-        notifyInfo("Ошибка при обновлении статуса пользователя");
+        notifyError("Ошибка при обновлении статуса пользователя");
       }
     } catch (error) {
       console.error("Ошибка обновления:", error);
@@ -134,7 +134,50 @@ const UsersPage = () => {
     }
   };
 
-  const getRoleIcon = (role: string) => {
+  /*
+  handleToggleActive
+// const handleToggleActive = async (userId: number, currentActive: boolean) => {
+//   if (!selectedUser) return;
+
+//   const prevUsers = [...users];
+
+//   setUsers(
+//     users.map((user) =>
+//       user.id === userId ? { ...user, active: !currentActive } : user
+//     )
+//   );
+
+//   try {
+//     const res = await fetch(`/api/users/${userId}`, {
+//       method: "PUT",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({ active: !currentActive }),
+//       credentials: "include",
+//     });
+
+//     if (res.ok) {
+//       notifyInfo(
+//         `Пользователь успешно ${
+//           currentActive ? "деактивирован" : "активирован"
+//         }`
+//       );
+//     } else {
+//       setUsers(prevUsers);
+//       notifyInfo("Ошибка при обновлении статуса пользователя");
+//     }
+//   } catch (error) {
+//     console.error("Ошибка обновления:", error);
+//     setUsers(prevUsers);
+//     notifyInfo("Произошла ошибка при обновлении статуса");
+//   }
+// };
+здесь реализован откат если сервер выдаст ошибку 
+*/
+ 
+
+const getRoleIcon = (role: string) => {
     switch (role) {
       case "admin":
         return <FaCrown className="text-red-500" />;
@@ -586,3 +629,7 @@ const UsersPage = () => {
 
 
 export default UsersPage;
+function notifyError(arg0: string) {
+  throw new Error("Function not implemented.");
+}
+
