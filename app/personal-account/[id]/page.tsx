@@ -4,14 +4,13 @@ import { User, useUserStore } from "@/store/userStore";
 import { useParams, useRouter } from "next/navigation";
 import { useToast } from "@/app/ToastProvider";
 import { FaKey, FaHistory, FaSave, FaEdit, FaTrash } from "react-icons/fa";
-
+import ConfirmModal from "../../components/ui/ConfirmModal";
 
 interface LoginHistory {
   id: string;
   timestamp: string;
   device?: string;
 }
-
 
 const ChangePasswordModal = ({
   isOpen,
@@ -127,7 +126,6 @@ const ChangePasswordModal = ({
   );
 };
 
-
 const LoginHistoryModal = ({
   isOpen,
   onClose,
@@ -197,8 +195,37 @@ const PersonalAccountPage = () => {
   const router = useRouter();
   const { notifyInfo, notifySuccess, notifyError } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Сохраняем историю входов в localStorage
+  const openDeleteConfirm = () => {
+    setShowDeleteConfirm(true);
+  };
+
+    const handleDeleteAccount = async () => {
+      if (!params?.id) return;
+
+      try {
+        const res = await fetch(`/api/personal-account/${params.id}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Ошибка удаления аккаунта");
+        }
+
+        if (data.success) {
+          notifySuccess("Аккаунт успешно удален");
+          router.push("/login");
+        }
+      } catch (err: any) {
+        console.error("Ошибка удаления аккаунта:", err);
+        notifyError(err.message || "Ошибка при удалении аккаунта");
+      }
+    };
+
   const saveLoginHistory = (userId: string) => {
     const historyKey = `login_history_${userId}`;
     const newEntry = {
@@ -215,7 +242,6 @@ const PersonalAccountPage = () => {
     return updatedHistory;
   };
 
-  // Загружаем историю входов из localStorage
   const loadLoginHistory = (userId: string) => {
     const historyKey = `login_history_${userId}`;
     const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
@@ -232,7 +258,6 @@ const PersonalAccountPage = () => {
 
         const userId = String(params.id);
 
-        // Если пользователь уже загружен в store и это тот же пользователь
         if (user && userId === String(user.id)) {
           setCurrentUser(user);
           setEditedUser({ ...user });
@@ -256,7 +281,6 @@ const PersonalAccountPage = () => {
           setEditedUser({ ...data.user });
           loadLoginHistory(userId);
 
-          // Сохраняем текущий вход в историю
           saveLoginHistory(userId);
         } else {
           notifyError(data.error || "Ошибка загрузки данных");
@@ -340,7 +364,7 @@ const PersonalAccountPage = () => {
     }
   };
 
-  const handleDeleteAccount = async () => {
+  /*const handleDeleteAccount = async () => {
     if (
       !params?.id ||
       !window.confirm(
@@ -371,7 +395,7 @@ const PersonalAccountPage = () => {
       notifyError(err.message || "Ошибка при удалении аккаунта");
     }
   };
-
+*/
   if (!currentUser) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-700">
@@ -383,6 +407,15 @@ const PersonalAccountPage = () => {
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-gray-100 text-gray-800">
       {/* Модальные окна */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteAccount}
+        message="Вы уверены, что хотите удалить аккаунт? Это действие нельзя отменить."
+        confirmText="Удалить аккаунт"
+        cancelText="Отмена"
+        confirmColor="red"
+      />
       <ChangePasswordModal
         isOpen={showChangePassword}
         onClose={() => setShowChangePassword(false)}
@@ -409,7 +442,7 @@ const PersonalAccountPage = () => {
             </h3>
             <div className="flex gap-2">
               <button
-                onClick={handleDeleteAccount}
+                onClick={openDeleteConfirm}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
                 title="Удалить аккаунт"
               >
@@ -420,7 +453,7 @@ const PersonalAccountPage = () => {
                 disabled={!isEditing || isSaving}
                 className={`px-4 py-2 rounded-lg transition flex items-center gap-2 ${
                   isEditing
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    ? "bg-[#3E4F5F]/60 text-white hover:bg-[#2d3a47]/40"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
               >
@@ -439,7 +472,7 @@ const PersonalAccountPage = () => {
                 type="text"
                 value={editedUser.name || ""}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:#D3D3D3"
               />
             </div>
 
@@ -453,7 +486,7 @@ const PersonalAccountPage = () => {
                 onChange={(e) =>
                   handleInputChange("legal_address", e.target.value)
                 }
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:#D3D3D3"
               />
             </div>
 
@@ -465,8 +498,9 @@ const PersonalAccountPage = () => {
                 <input
                   type="text"
                   value={editedUser.inn || ""}
+                  maxLength={12}
                   onChange={(e) => handleInputChange("inn", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:#D3D3D3"
                 />
               </div>
               <div>
@@ -476,8 +510,9 @@ const PersonalAccountPage = () => {
                 <input
                   type="text"
                   value={editedUser.kpp || ""}
+                  maxLength={9}
                   onChange={(e) => handleInputChange("kpp", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:#D3D3D3"
                 />
               </div>
             </div>
@@ -491,7 +526,7 @@ const PersonalAccountPage = () => {
                   type="email"
                   value={editedUser.email || ""}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:#D3D3D3"
                 />
               </div>
               <div>
@@ -503,7 +538,7 @@ const PersonalAccountPage = () => {
                   value={editedUser.phone || ""}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
                   placeholder="+7 (999) 123-45-67"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:#D3D3D3"
                 />
               </div>
             </div>
@@ -517,7 +552,7 @@ const PersonalAccountPage = () => {
             <div className="flex flex-col md:flex-row gap-4">
               <button
                 onClick={() => setShowChangePassword(true)}
-                className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2"
+                className="px-4 py-2 text-white rounded-lg bg-[#D3D3D3] hover:bg-[#2d3a47]/30 transition flex items-center justify-center gap-2"
               >
                 <FaKey className="text-lg" /> Сменить пароль
               </button>

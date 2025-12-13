@@ -14,7 +14,7 @@ export interface User {
   legal_address: string | null;
   actual_address: string | null;
   active: boolean;
-  phone?: string | null; // Добавим опциональное поле для телефона
+  phone?: string | null; 
 }
 
 interface UserState {

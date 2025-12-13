@@ -40,7 +40,7 @@ export async function GET(
 
     conn = await getConnection();
     const [rows] = await conn.execute(
-      "SELECT id, email, name, role, inn, kpp, legal_address, actual_address, code, access, create_time, active FROM users WHERE id = ?",
+      "SELECT id, email, name, phone, role, inn, kpp, legal_address, actual_address, code, access, create_time, active FROM users WHERE id = ?",
       [id]
     );
 

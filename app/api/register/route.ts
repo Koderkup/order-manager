@@ -15,6 +15,7 @@ export async function POST(req: Request) {
       kpp,
       legal_address,
       actual_address,
+      phone,
     } = await req.json();
 
     if (!email || !password || !code || !name || !inn) {
@@ -42,8 +43,8 @@ export async function POST(req: Request) {
     
     const [result] = await conn.execute(
       `INSERT INTO users 
-        (email, password, code, name, inn, kpp, legal_address, actual_address) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        (email, password, code, name, inn, kpp, legal_address, actual_address, phone) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         email,
         hashed,
@@ -53,6 +54,7 @@ export async function POST(req: Request) {
         kpp || null,
         legal_address || null,
         actual_address || null,
+        phone || null,
       ]
     );
 
@@ -83,6 +85,7 @@ export async function POST(req: Request) {
         ? String(dbUser.actual_address)
         : null,
       active: dbUser.active === 1, 
+      phone: dbUser.phone ? String(dbUser.phone) : null,
     };
 
     const accessToken = createAccessToken(dbUser);

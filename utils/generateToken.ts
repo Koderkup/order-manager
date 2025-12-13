@@ -13,6 +13,7 @@ export interface AppJwtPayload {
   legal_address: string;
   actual_address: string;
   active: number; // 0 или 1
+  phone?: string | null;
 }
 
 export const createAccessToken = (payload: AppJwtPayload) => {
