@@ -209,24 +209,6 @@ const UserContractsPage = () => {
   const handleDeleteContract = async (id: number) => {
     setContractToDelete(id);
     setIsDeleteModalOpen(true);
-
-    // try {
-    //   const res = await fetch(`/api/contracts/${id}`, {
-    //     method: "DELETE",
-    //     credentials: "include",
-    //   });
-
-    //   const data = await res.json();
-
-    //   if (res.ok) {
-    //     notifySuccess(data.message || "Договор успешно удален");
-    //     loadUserContracts();
-    //   } else {
-    //     notifyError(data.error || "Ошибка удаления договора");
-    //   }
-    // } catch (error) {
-    //   notifyError("Ошибка сети при удалении договора");
-    // }
   };
 
   const confirmDeleteContract = async () => {
@@ -304,7 +286,7 @@ const UserContractsPage = () => {
       notifyError("Ошибка сети при сохранении договора");
     }
   };
-  // Фильтрация договоров
+
   const filteredContracts = contracts.filter((contract) => {
     const matchesSearch =
       (contract.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
@@ -322,14 +304,14 @@ const UserContractsPage = () => {
     return matchesSearch && matchesFilter;
   });
 
-  // Расчет общей суммы
+
   const calculateTotalAmount = () => {
     return contracts.reduce((total, contract) => {
       return total + parseFloat(contract.amount);
     }, 0);
   };
 
-  // Подсчет активных договоров
+
   const countActiveContracts = () => {
     return contracts.filter((contract) => {
       const status = getContractStatus(contract);
