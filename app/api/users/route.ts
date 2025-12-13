@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { getConnection } from "@/lib/db";
 import { PoolConnection } from "mysql2/promise";
+
+
 export async function GET(request: NextRequest) {
   let conn: PoolConnection | null = null;
   try {

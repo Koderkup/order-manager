@@ -14,13 +14,16 @@ export interface User {
   legal_address: string | null;
   actual_address: string | null;
   active: boolean;
+  phone?: string | null; // Добавим опциональное поле для телефона
 }
 
 interface UserState {
-  user: User | null; 
-  viewedUser: User | null; 
+  user: User | null;
+  viewedUser: User | null;
   setUser: (user: User | null) => void;
   setViewedUser: (user: User | null) => void;
+  updateUser: (updates: Partial<User>) => void; 
+  updateViewedUser: (updates: Partial<User>) => void; 
 }
 
 export const useUserStore = create<UserState>()(
@@ -30,6 +33,16 @@ export const useUserStore = create<UserState>()(
       viewedUser: null,
       setUser: (user) => set({ user }),
       setViewedUser: (user) => set({ viewedUser: user }),
+      updateUser: (updates) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updates } : null,
+        })),
+      updateViewedUser: (updates) =>
+        set((state) => ({
+          viewedUser: state.viewedUser
+            ? { ...state.viewedUser, ...updates }
+            : null,
+        })),
     }),
     {
       name: "user-storage",
