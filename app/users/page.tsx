@@ -15,9 +15,14 @@ import {
   FaCrown,
   FaUserCircle,
   FaCalendarAlt,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaBuilding,
+  FaTrash,
 } from "react-icons/fa";
 import { useToast } from "@/app/ToastProvider";
 import ConfirmModal from "../components/ui/ConfirmModal";
+
 interface User {
   id: number;
   name: string;
@@ -31,7 +36,23 @@ interface User {
   access: number;
   create_time: string;
   active: boolean;
+  phone?: string;
 }
+
+
+type EditUserForm = {
+  name: string;
+  email: string;
+  role: "admin" | "client" | "manager";
+  inn: string;
+  kpp: string;
+  legal_address: string;
+  actual_address: string;
+  code: string;
+  access: number;
+  active: boolean;
+  phone: string;
+};
 
 const UsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -39,7 +60,7 @@ const UsersPage = () => {
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { notifyInfo, notifyError } = useToast();
+  const { notifyInfo, notifyError, notifySuccess, notifyWarning } = useToast();
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{
     id: number;
@@ -47,29 +68,65 @@ const UsersPage = () => {
     name: string;
   } | null>(null);
 
+ 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editFormData, setEditFormData] = useState<EditUserForm>({
+    name: "",
+    email: "",
+    role: "client",
+    inn: "",
+    kpp: "",
+    legal_address: "",
+    actual_address: "",
+    code: "",
+    access: 0,
+    active: true,
+    phone: "",
+  });
+  const [editLoading, setEditLoading] = useState(false);
+
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch("/api/users", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUsers(data.users || []);
-        } else {
-          console.error("Ошибка загрузки пользователей");
-        }
-      } catch (error) {
-        console.error("Ошибка сети:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/users", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (data && Array.isArray(data.users)) {
+        setUsers(data.users);
+      } else {
+        console.warn("Некорректный формат данных:", data);
+        setUsers([]);
+      }
+
+      setError(null);
+    } catch (error) {
+      console.error("Ошибка загрузки пользователей:", error);
+      setError(
+        "Не удалось загрузить пользователей. Проверьте подключение к сети."
+      );
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -104,6 +161,16 @@ const UsersPage = () => {
 
   const handleToggleActive = async (userId: number, currentActive: boolean) => {
     if (!selectedUser) return;
+
+    const prevUsers = [...users];
+
+   
+    setUsers(
+      users.map((user) =>
+        user.id === userId ? { ...user, active: !currentActive } : user
+      )
+    );
+
     try {
       const res = await fetch(`/api/users/${userId}`, {
         method: "PUT",
@@ -115,69 +182,153 @@ const UsersPage = () => {
       });
 
       if (res.ok) {
-        setUsers(
-          users.map((user) =>
-            user.id === userId ? { ...user, active: !currentActive } : user
-          )
-        );
-        notifyInfo(
+        notifySuccess(
           `Пользователь успешно ${
             currentActive ? "деактивирован" : "активирован"
           }`
         );
       } else {
+     
+        setUsers(prevUsers);
         notifyError("Ошибка при обновлении статуса пользователя");
       }
     } catch (error) {
       console.error("Ошибка обновления:", error);
-      notifyInfo("Произошла ошибка при обновлении статуса");
+      setUsers(prevUsers);
+      notifyError("Произошла ошибка при обновлении статуса");
+    } finally {
+      setModalOpen(false);
+      setSelectedUser(null);
     }
   };
 
-  /*
-  handleToggleActive
-// const handleToggleActive = async (userId: number, currentActive: boolean) => {
-//   if (!selectedUser) return;
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setEditFormData({
+      name: user.name || "",
+      email: user.email || "",
+      role: user.role || "client",
+      inn: user.inn || "",
+      kpp: user.kpp || "",
+      legal_address: user.legal_address || "",
+      actual_address: user.actual_address || "",
+      code: user.code || "",
+      access: user.access || 0,
+      active: user.active,
+      phone: user.phone || "",
+    });
+    setIsEditModalOpen(true);
+  };
 
-//   const prevUsers = [...users];
+  const handleEditFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
 
-//   setUsers(
-//     users.map((user) =>
-//       user.id === userId ? { ...user, active: !currentActive } : user
-//     )
-//   );
+    if (type === "checkbox") {
+      const checkbox = e.target as HTMLInputElement;
+      setEditFormData((prev) => ({
+        ...prev,
+        [name]: checkbox.checked,
+      }));
+    } else if (name === "access") {
+      setEditFormData((prev) => ({
+        ...prev,
+        [name]: parseInt(value) || 0,
+      }));
+    } else {
+      setEditFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
 
-//   try {
-//     const res = await fetch(`/api/users/${userId}`, {
-//       method: "PUT",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({ active: !currentActive }),
-//       credentials: "include",
-//     });
+  
+  const handleSaveUser = async () => {
+    if (!editingUser) return;
 
-//     if (res.ok) {
-//       notifyInfo(
-//         `Пользователь успешно ${
-//           currentActive ? "деактивирован" : "активирован"
-//         }`
-//       );
-//     } else {
-//       setUsers(prevUsers);
-//       notifyInfo("Ошибка при обновлении статуса пользователя");
-//     }
-//   } catch (error) {
-//     console.error("Ошибка обновления:", error);
-//     setUsers(prevUsers);
-//     notifyInfo("Произошла ошибка при обновлении статуса");
-//   }
-// };
-здесь реализован откат если сервер выдаст ошибку 
-*/
- 
+    setEditLoading(true);
 
-const getRoleIcon = (role: string) => {
+    try {
+      const res = await fetch(`/api/users/${editingUser.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editFormData),
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+
+        setUsers(
+          users.map((user) =>
+            user.id === editingUser.id ? { ...user, ...editFormData } : user
+          )
+        );
+
+        notifySuccess(data.message || "Данные пользователя успешно обновлены");
+        setIsEditModalOpen(false);
+        setEditingUser(null);
+      } else {
+        const errorData = await res.json();
+        notifyError(
+          errorData.error || "Ошибка при обновлении данных пользователя"
+        );
+      }
+    } catch (error) {
+      console.error("Ошибка обновления:", error);
+      notifyError("Произошла ошибка при обновлении данных");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDeleteUser = (user: User) => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+  };
+
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setDeleteLoading(true);
+
+    const prevUsers = [...users];
+
+   
+    setUsers(users.filter((user) => user.id !== userToDelete.id));
+
+    try {
+      const res = await fetch(`/api/users/${userToDelete.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        notifySuccess(data.message || "Пользователь успешно удален");
+      } else {
+        
+        setUsers(prevUsers);
+        const errorData = await res.json();
+        notifyError(errorData.error || "Ошибка при удалении пользователя");
+      }
+    } catch (error) {
+      console.error("Ошибка удаления:", error);
+      setUsers(prevUsers);
+      notifyError("Произошла ошибка при удалении пользователя");
+    } finally {
+      setDeleteLoading(false);
+      setIsDeleteModalOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const getRoleIcon = (role: string) => {
     switch (role) {
       case "admin":
         return <FaCrown className="text-red-500" />;
@@ -207,42 +358,6 @@ const getRoleIcon = (role: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("ru-RU");
   };
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch("/api/users", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const data = await res.json();
-
-        if (data && Array.isArray(data.users)) {
-          setUsers(data.users);
-        } else {
-          console.warn("Некорректный формат данных:", data);
-          setUsers([]);
-        }
-
-        setError(null);
-      } catch (error) {
-        console.error("Ошибка загрузки пользователей:", error);
-        setError(
-          "Не удалось загрузить пользователей. Проверьте подключение к сети."
-        );
-        setUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
 
   if (loading) {
     return (
@@ -279,7 +394,7 @@ const getRoleIcon = (role: string) => {
               <button
                 className="px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium"
                 onClick={() => {
-                  // Здесь нужно добавить логику создания нового пользователя
+               
                   notifyInfo("Функция создания нового пользователя");
                 }}
               >
@@ -390,6 +505,14 @@ const getRoleIcon = (role: string) => {
                             {user.email}
                           </span>
                         </div>
+                        {user.phone && (
+                          <div className="flex items-center">
+                            <FaPhone className="text-gray-400 mr-2 text-sm" />
+                            <span className="text-gray-700 text-sm">
+                              {user.phone}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-center">
                           <FaIdCard className="text-gray-400 mr-2 text-sm" />
                           <span className="text-gray-700 text-sm">
@@ -467,7 +590,7 @@ const getRoleIcon = (role: string) => {
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <div className="flex flex-col md:flex-row gap-2">
+                      <div className="flex flex-col gap-2">
                         <button
                           onClick={() => handleViewProfile(user.id)}
                           className="text-[#5a6c7d] hover:text-[#4a5a6a] font-medium flex items-center text-sm"
@@ -500,15 +623,19 @@ const getRoleIcon = (role: string) => {
                         </button>
 
                         <button
-                          onClick={() => {
-                            notifyInfo(
-                              `Редактирование пользователя ${user.name}`
-                            );
-                          }}
+                          onClick={() => handleEditUser(user)}
                           className="text-gray-600 hover:text-gray-800 font-medium flex items-center text-sm"
                         >
                           <FaArrowRight className="mr-1.5" />
                           Редактировать
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteUser(user)}
+                          className="text-red-600 hover:text-red-800 font-medium flex items-center text-sm"
+                        >
+                          <FaTrash className="mr-1.5" />
+                          Удалить
                         </button>
                       </div>
                     </td>
@@ -602,6 +729,8 @@ const getRoleIcon = (role: string) => {
           </div>
         </div>
       </div>
+
+      {/* Модальное окно подтверждения активации/деактивации */}
       <ConfirmModal
         isOpen={isModalOpen}
         onClose={() => {
@@ -623,13 +752,291 @@ const getRoleIcon = (role: string) => {
         confirmText={selectedUser?.active ? "Деактивировать" : "Активировать"}
         confirmColor={selectedUser?.active ? "red" : "green"}
       />
+
+      {/* Модальное окно подтверждения удаления */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={confirmDeleteUser}
+        message={
+          userToDelete
+            ? `Вы уверены, что хотите удалить пользователя "${userToDelete.name}" (${userToDelete.email})? Это действие нельзя отменить.`
+            : ""
+        }
+        confirmText="Удалить"
+        confirmColor="red"
+      />
+
+      {/* Модальное окно редактирования пользователя */}
+      {isEditModalOpen && editingUser && (
+        <div className="fixed inset-0 bg-white/60 backdrop-blur flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            {/* Заголовок модального окна */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-medium text-gray-900">
+                  Редактирование пользователя
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setEditingUser(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+              <p className="text-gray-600 mt-1">
+                ID: {editingUser.id} • {editingUser.email}
+              </p>
+            </div>
+
+            {/* Форма редактирования */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Основная информация */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                    <FaUser className="mr-2" />
+                    Основная информация
+                  </h3>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Имя пользователя
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={editFormData.name}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={editFormData.email}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Телефон
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={editFormData.phone}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                      placeholder="+7 (XXX) XXX-XX-XX"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Роль
+                    </label>
+                    <select
+                      name="role"
+                      value={editFormData.role}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                    >
+                      <option value="client">Клиент</option>
+                      <option value="manager">Менеджер</option>
+                      <option value="admin">Администратор</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Код пользователя
+                    </label>
+                    <input
+                      type="text"
+                      name="code"
+                      value={editFormData.code}
+                      onChange={handleEditFormChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Статус и доступ */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                    <FaCheckCircle className="mr-2" />
+                    Статус и доступ
+                  </h3>
+
+                  <div className="flex items-center space-x-4">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="active"
+                        checked={editFormData.active}
+                        onChange={handleEditFormChange}
+                        className="h-4 w-4 text-[#5a6c7d] focus:ring-[#5a6c7d] border-gray-300 rounded"
+                      />
+                      <span className="ml-2 text-gray-700">Активен</span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="access"
+                        checked={editFormData.access === 1}
+                        onChange={(e) => {
+                          setEditFormData((prev) => ({
+                            ...prev,
+                            access: e.target.checked ? 1 : 0,
+                          }));
+                        }}
+                        className="h-4 w-4 text-[#5a6c7d] focus:ring-[#5a6c7d] border-gray-300 rounded"
+                      />
+                      <span className="ml-2 text-gray-700">
+                        Доступ разрешен
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Реквизиты */}
+                  <div className="mt-6">
+                    <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                      <FaBuilding className="mr-2" />
+                      Реквизиты компании
+                    </h3>
+
+                    <div className="mt-3 space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          ИНН
+                        </label>
+                        <input
+                          type="text"
+                          name="inn"
+                          value={editFormData.inn}
+                          onChange={handleEditFormChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          КПП
+                        </label>
+                        <input
+                          type="text"
+                          name="kpp"
+                          value={editFormData.kpp}
+                          onChange={handleEditFormChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Адреса */}
+                <div className="md:col-span-2 space-y-4">
+                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                    <FaMapMarkerAlt className="mr-2" />
+                    Адреса
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Юридический адрес
+                      </label>
+                      <input
+                        type="text"
+                        name="legal_address"
+                        value={editFormData.legal_address}
+                        onChange={handleEditFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Фактический адрес
+                      </label>
+                      <input
+                        type="text"
+                        name="actual_address"
+                        value={editFormData.actual_address}
+                        onChange={handleEditFormChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Кнопки действий в форме редактирования */}
+              <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+                {/* Кнопка удаления в форме редактирования */}
+                <button
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setEditingUser(null);
+                    handleDeleteUser(editingUser);
+                  }}
+                  className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors font-medium"
+                  disabled={editLoading}
+                >
+                  <FaTrash className="inline mr-2" />
+                  Удалить пользователя
+                </button>
+
+                {/* Кнопки отмены и сохранения */}
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setEditingUser(null);
+                    }}
+                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    disabled={editLoading}
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    onClick={handleSaveUser}
+                    disabled={editLoading}
+                    className="px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {editLoading ? (
+                      <span className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Сохранение...
+                      </span>
+                    ) : (
+                      "Сохранить изменения"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-
 export default UsersPage;
-function notifyError(arg0: string) {
-  throw new Error("Function not implemented.");
-}
-
