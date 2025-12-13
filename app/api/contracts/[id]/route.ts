@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { getConnection } from "@/lib/db";
 import { PoolConnection } from "mysql2/promise";
 
+
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -162,10 +163,13 @@ export async function POST(
   }
 }
 
-export async function PUT(request: NextRequest) {
-  
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> } 
+) {
   let conn: PoolConnection | null = null;
   try {
+    const { id } = await context.params; 
     const accessToken = request.cookies.get("access_token")?.value;
 
     if (!accessToken) {
@@ -178,7 +182,7 @@ export async function PUT(request: NextRequest) {
     ) as any;
 
     const body = await request.json();
-    const { id, code, name, start_date, end_date, amount, active } = body;
+    const { code, name, start_date, end_date, amount, active } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -269,11 +273,11 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> } 
 ) {
   let conn: PoolConnection | null = null;
   try {
-    const { id } = await params;
+    const { id } = await context.params; 
     const accessToken = request.cookies.get("access_token")?.value;
 
     if (!accessToken) {
@@ -285,8 +289,7 @@ export async function DELETE(
       process.env.NEXT_PUBLIC_JWT_SECRET!
     ) as any;
 
-
-console.log("Contract ID from params:", id);
+    console.log("Contract ID from params:", id);
     if (!id) {
       return NextResponse.json(
         { error: "ID договора обязателен" },
