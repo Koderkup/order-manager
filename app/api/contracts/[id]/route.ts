@@ -5,7 +5,7 @@ import { PoolConnection } from "mysql2/promise";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   let conn: PoolConnection | null = null;
   try {
@@ -37,7 +37,7 @@ export async function GET(
 
     conn = await getConnection();
 
-    const contractId = params.id;
+    const { id: contractId } = await context.params;
 
     if (userId) {
       const [contracts] = await conn.execute(
@@ -87,10 +87,11 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   let conn: PoolConnection | null = null;
   try {
+    const { id } = await context.params;
     const accessToken = request.cookies.get("access_token")?.value;
 
     if (!accessToken) {
@@ -162,6 +163,7 @@ export async function POST(
 }
 
 export async function PUT(request: NextRequest) {
+  
   let conn: PoolConnection | null = null;
   try {
     const accessToken = request.cookies.get("access_token")?.value;
