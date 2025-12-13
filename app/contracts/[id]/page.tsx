@@ -8,7 +8,6 @@ import {
   FaRubleSign,
   FaCheckCircle,
   FaTimesCircle,
-  FaArrowRight,
   FaSearch,
   FaFilter,
   FaEye,
@@ -19,7 +18,7 @@ import {
 } from "react-icons/fa";
 import { useToast } from "@/app/ToastProvider";
 import { useUserStore } from "@/store/userStore";
-
+import ConfirmModal from "../../components/ui/ConfirmModal";
 interface Contract {
   id: number;
   code: string;
@@ -42,6 +41,8 @@ const UserContractsPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
   const { notifyInfo, notifyError, notifySuccess } = useToast();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [contractToDelete, setContractToDelete] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     id: 0,
@@ -100,24 +101,21 @@ const UserContractsPage = () => {
         }
 
         if (currentUser.role === "admin") {
-
           window.location.href = "/contracts";
           return;
         }
 
         if (currentUser.id.toString() !== userId) {
-
           window.location.href = `/contracts/${currentUser.id}`;
           return;
         }
- 
+
         loadUserContracts();
       }, 100);
     };
 
     checkAccess();
   }, [user, userId]);
-
 
   const formatDate = (dateString: string) => {
     try {
@@ -209,12 +207,33 @@ const UserContractsPage = () => {
   };
 
   const handleDeleteContract = async (id: number) => {
-    if (!confirm("Вы уверены, что хотите удалить этот договор?")) {
-      return;
-    }
+    setContractToDelete(id);
+    setIsDeleteModalOpen(true);
+
+    // try {
+    //   const res = await fetch(`/api/contracts/${id}`, {
+    //     method: "DELETE",
+    //     credentials: "include",
+    //   });
+
+    //   const data = await res.json();
+
+    //   if (res.ok) {
+    //     notifySuccess(data.message || "Договор успешно удален");
+    //     loadUserContracts();
+    //   } else {
+    //     notifyError(data.error || "Ошибка удаления договора");
+    //   }
+    // } catch (error) {
+    //   notifyError("Ошибка сети при удалении договора");
+    // }
+  };
+
+  const confirmDeleteContract = async () => {
+    if (!contractToDelete) return;
 
     try {
-      const res = await fetch(`/api/contracts/${id}`, {
+      const res = await fetch(`/api/contracts/${contractToDelete}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -229,6 +248,8 @@ const UserContractsPage = () => {
       }
     } catch (error) {
       notifyError("Ошибка сети при удалении договора");
+    } finally {
+      setContractToDelete(null);
     }
   };
 
@@ -245,10 +266,9 @@ const UserContractsPage = () => {
 
       const method = editingContract ? "PUT" : "POST";
 
-      
       const requestBody = {
         id: editingContract ? editingContract.id : null,
-        code: formData.code || null, 
+        code: formData.code || null,
         name: formData.name || null,
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
@@ -708,6 +728,30 @@ const UserContractsPage = () => {
                 Показано {filteredContracts.length} из {contracts.length}{" "}
                 договоров
               </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Назад
+                </button>
+                <span className="px-3 py-1 bg-[#5a6c7d] text-white rounded-lg">
+                  1
+                </span>
+                <button
+                  className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100"
+                  disabled={contracts.length <= 10}
+                >
+                  2
+                </button>
+                <button
+                  className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100"
+                  disabled={contracts.length <= 10}
+                >
+                  Вперед
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -778,6 +822,18 @@ const UserContractsPage = () => {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setContractToDelete(null);
+        }}
+        onConfirm={confirmDeleteContract}
+        message="Вы уверены, что хотите удалить этот договор?"
+        confirmText="Удалить"
+        cancelText="Отмена"
+        confirmColor="red"
+      />
     </div>
   );
 };

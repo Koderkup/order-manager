@@ -8,7 +8,6 @@ import {
   FaRubleSign,
   FaCheckCircle,
   FaTimesCircle,
-  FaArrowRight,
   FaSearch,
   FaFilter,
   FaEye,
@@ -18,7 +17,7 @@ import {
 } from "react-icons/fa";
 import { useToast } from "@/app/ToastProvider";
 import { User, useUserStore } from "@/store/userStore";
-
+import ConfirmModal from "../components/ui/ConfirmModal";
 
 interface Contract {
   id: number;
@@ -41,7 +40,8 @@ const ContractsPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingContract, setEditingContract] = useState<Contract | null>(null);
   const { notifyInfo, notifyError, notifySuccess } = useToast();
-
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [contractToDelete, setContractToDelete] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     code: "",
@@ -52,11 +52,9 @@ const ContractsPage = () => {
     active: true,
   });
 
-
   useEffect(() => {
     const checkAuthAndRole = async () => {
       try {
-        
         const currentUser = useUserStore.getState().user;
 
         if (!currentUser) {
@@ -78,7 +76,6 @@ const ContractsPage = () => {
 
     checkAuthAndRole();
   }, [router, user]);
-
 
   const loadContracts = async () => {
     try {
@@ -108,7 +105,6 @@ const ContractsPage = () => {
     loadContracts();
   }, [isCheckingAuth, user]);
 
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("ru-RU", {
@@ -118,11 +114,9 @@ const ContractsPage = () => {
     });
   };
 
-
   const formatAmount = (amount: string) => {
     return new Intl.NumberFormat("ru-RU").format(parseFloat(amount));
   };
-
 
   const getContractStatus = (contract: Contract) => {
     const now = new Date();
@@ -143,7 +137,6 @@ const ContractsPage = () => {
 
     return { status: "active", text: "Активен" };
   };
-
 
   const handleFormChange = (
     e: React.ChangeEvent<
@@ -176,7 +169,7 @@ const ContractsPage = () => {
     setFormData({
       code: contract.code,
       name: contract.name,
-      start_date: contract.start_date.split("T")[0], 
+      start_date: contract.start_date.split("T")[0],
       end_date: contract.end_date.split("T")[0],
       amount: contract.amount,
       active: contract.active === 1,
@@ -185,12 +178,16 @@ const ContractsPage = () => {
   };
 
   const handleDeleteContract = async (id: number) => {
-    if (!confirm("Вы уверены, что хотите удалить этот договор?")) {
-      return;
-    }
+    setContractToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+
+  const confirmDeleteContract = async () => {
+    if (!contractToDelete) return;
 
     try {
-      const res = await fetch(`/api/contracts/${id}`, {
+      const res = await fetch(`/api/contracts?id=${contractToDelete}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -205,6 +202,8 @@ const ContractsPage = () => {
       }
     } catch (error) {
       notifyError("Ошибка сети при удалении договора");
+    } finally {
+      setContractToDelete(null);
     }
   };
 
@@ -242,7 +241,6 @@ const ContractsPage = () => {
     }
   };
 
-
   const filteredContracts = contracts.filter((contract) => {
     const matchesSearch =
       contract.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -260,13 +258,11 @@ const ContractsPage = () => {
     return matchesSearch && matchesFilter;
   });
 
-
   const calculateTotalAmount = () => {
     return contracts.reduce((total, contract) => {
       return total + parseFloat(contract.amount);
     }, 0);
   };
-
 
   const countActiveContracts = () => {
     return contracts.filter((contract) => {
@@ -295,7 +291,6 @@ const ContractsPage = () => {
       </div>
     );
   }
-
 
   if (!user || user.role !== "admin") {
     return (
@@ -746,6 +741,18 @@ const ContractsPage = () => {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setContractToDelete(null);
+        }}
+        onConfirm={confirmDeleteContract}
+        message="Вы уверены, что хотите удалить этот договор?"
+        confirmText="Удалить"
+        cancelText="Отмена"
+        confirmColor="red"
+      />
     </div>
   );
 };
