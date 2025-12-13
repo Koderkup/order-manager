@@ -14,6 +14,7 @@ import {
   FaCheckCircle,
   FaSignInAlt,
   FaUserPlus,
+  FaPhone,
 } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaXTwitter, FaFacebook } from "react-icons/fa6";
@@ -36,6 +37,7 @@ export default function AuthPage() {
     kpp: "",
     legal_address: "",
     actual_address: "",
+    phone: "",
   });
 
   const [message, setMessage] = useState({ text: "", type: "" });
@@ -52,9 +54,49 @@ export default function AuthPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // 
+  
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+
+      if (name === "phone") {
+        let formattedValue = value.replace(/\D/g, ""); 
+
+        if (formattedValue.length > 0) {
+          if (!formattedValue.startsWith("7")) {
+            formattedValue = "7" + formattedValue;
+          }
+
+          let formattedPhone = "+7 ";
+
+          if (formattedValue.length > 1) {
+            const part1 = formattedValue.substring(1, 4);
+            if (part1) formattedPhone += `(${part1}`;
+
+            if (formattedValue.length > 4) {
+              const part2 = formattedValue.substring(4, 7);
+              if (part2) formattedPhone += `) ${part2}`;
+
+              if (formattedValue.length > 7) {
+                const part3 = formattedValue.substring(7, 9);
+                if (part3) formattedPhone += `-${part3}`;
+
+                if (formattedValue.length > 9) {
+                  const part4 = formattedValue.substring(9, 11);
+                  if (part4) formattedPhone += `-${part4}`;
+                }
+              }
+            }
+          }
+
+          setFormData({ ...formData, [name]: formattedPhone });
+        } else {
+          setFormData({ ...formData, [name]: "" });
+        }
+      } else {
+        setFormData({ ...formData, [name]: value });
+      }
+    };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +117,7 @@ export default function AuthPage() {
             kpp: formData.kpp,
             legal_address: formData.legal_address,
             actual_address: formData.actual_address,
+            phone: formData.phone,
           }),
         });
         const data = await res.json();
@@ -300,7 +343,22 @@ export default function AuthPage() {
                       />
                     </div>
                   </div>
-
+                  <div>
+                    <label className="block text-gray-700 font-medium mb-2 text-sm">
+                      Телефон
+                    </label>
+                    <div className="relative">
+                      <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all text-sm md:text-base"
+                        placeholder="+7 (999) 123-45-67"
+                      />
+                    </div>
+                  </div>
                   <div>
                     <label className="block text-gray-700 font-medium mb-2 text-sm">
                       Юридический адрес

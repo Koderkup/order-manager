@@ -47,6 +47,7 @@ export async function POST(req: Request) {
       legal_address: user.legal_address,
       actual_address: user.actual_address,
       active: user.active,
+      phone: user.phone ? String(user.phone) : null,
     };
 
     const response = NextResponse.json({
