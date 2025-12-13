@@ -89,9 +89,9 @@ export async function POST(request: NextRequest) {
     }
 
     const [result] = await conn.execute(
-      `INSERT INTO contracts (code, name, start_date, end_date, amount, active) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [code, name, start_date, end_date, amount, active]
+      `INSERT INTO contracts (code, name, start_date, end_date, amount, active, client_id) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [code, name, start_date, end_date, amount, active, payload.id]
     );
 
     return NextResponse.json({

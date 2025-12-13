@@ -56,19 +56,7 @@ const ContractsPage = () => {
   useEffect(() => {
     const checkAuthAndRole = async () => {
       try {
-        if (!user) {
-          const res = await fetch("/api/auth/me", {
-            credentials: "include",
-          });
-
-          if (res.ok) {
-            const userData = await res.json();
-            useUserStore.getState().setUser(userData);
-          }
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
+        
         const currentUser = useUserStore.getState().user;
 
         if (!currentUser) {
@@ -202,7 +190,7 @@ const ContractsPage = () => {
     }
 
     try {
-      const res = await fetch(`/api/contracts?id=${id}`, {
+      const res = await fetch(`/api/contracts/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
