@@ -26,7 +26,6 @@ export async function GET(request: NextRequest) {
        code, access, create_time, active 
        FROM users ORDER BY create_time DESC`
     );
-    console.log(rows);
     return NextResponse.json({
       success: true,
       users: rows,
