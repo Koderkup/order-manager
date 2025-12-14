@@ -94,8 +94,7 @@ export async function GET(
    ORDER BY s.code, p.code`,
       [contractId]
     );
-    console.log("contractId:", contractId);
-    console.log("priceItems:", priceItems);
+
     return NextResponse.json({
       success: true,
       priceItems: priceItems,

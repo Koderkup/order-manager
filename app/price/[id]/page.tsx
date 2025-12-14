@@ -31,13 +31,13 @@ const PricePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Загрузка договоров пользователя
+  
   const fetchUserContracts = async () => {
     try {
       setLoading(true);
       setError("");
 
-      // Используем тот же путь, что и в UserContractsPage
+      
       const response = await fetch(`/api/contracts/${user?.id}`, {
         method: "GET",
         credentials: "include",
@@ -62,7 +62,69 @@ const PricePage = () => {
     }
   };
 
-  // Загрузка прайс-листа для выбранного договора
+  // const fetchUserContracts = async () => {
+  //   try {
+  //     setLoading(true);
+  //     setError("");
+
+
+  //     const urlParams = new URLSearchParams(window.location.search);
+  //     const clientIdFromUrl = urlParams.get("clientId");
+
+
+  //     let targetUserId = user?.id;
+
+
+  //     if (user?.role === "admin" && clientIdFromUrl) {
+  //       targetUserId = parseInt(clientIdFromUrl);
+  //       console.log(
+  //         "Admin viewing client contracts, clientId:",
+  //         clientIdFromUrl
+  //       );
+  //     }
+
+
+  //     if (user?.role !== "admin" && clientIdFromUrl) {
+  //       setError("У вас нет доступа к договорам другого клиента");
+  //       setContracts([]);
+  //       return;
+  //     }
+
+
+  //     const response = await fetch(`/api/contracts/${targetUserId}`, {
+  //       method: "GET",
+  //       credentials: "include",
+  //     });
+
+  //     const data = await response.json();
+  //     console.log("Contracts data:", data);
+
+  //     if (response.ok && data.success) {
+  //       setContracts(data.contracts || []);
+
+    
+  //       const contractIdFromUrl = urlParams.get("contractId");
+  //       if (
+  //         contractIdFromUrl &&
+  //         data.contracts?.some(
+  //           (c: Contract) => c.id.toString() === contractIdFromUrl
+  //         )
+  //       ) {
+  //         setSelectedContract(contractIdFromUrl);
+  //       } else if (data.contracts && data.contracts.length > 0) {
+  //         setSelectedContract(data.contracts[0].id.toString());
+  //       }
+  //     } else {
+  //       setError(data.error || "Ошибка загрузки договоров");
+  //     }
+  //   } catch (err) {
+  //     console.error("Ошибка загрузки договоров:", err);
+  //     setError("Ошибка загрузки договоров. Проверьте подключение к серверу.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  
   const fetchPriceList = async (contractId: string) => {
     if (!contractId) return;
 
@@ -70,7 +132,7 @@ const PricePage = () => {
       setLoading(true);
       setError("");
 
-      // Создаем новый API эндпоинт для прайс-листа
+    
       const response = await fetch(`/api/price/${contractId}/pricelist`, {
         credentials: "include",
       });
@@ -112,7 +174,7 @@ const PricePage = () => {
     }
   }, [selectedContract]);
 
-  // Функция форматирования цены
+  
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("ru-RU", {
       style: "currency",
@@ -122,7 +184,7 @@ const PricePage = () => {
     }).format(price);
   };
 
-  // Если нет пользователя
+  
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 p-4 md:p-8 flex items-center justify-center">
