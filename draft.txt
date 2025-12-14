@@ -15,7 +15,8 @@ CREATE TABLE freedb_oredrDB.users (
     kpp CHAR(9),                                     
     legal_address VARCHAR(500),                       
     actual_address VARCHAR(500),                      
-    active BOOLEAN DEFAULT TRUE                       
+    active BOOLEAN DEFAULT TRUE, 
+    phone VARCHAR(20), NULL                                )                     
 );
 
 seeds users
@@ -36,7 +37,10 @@ CREATE TABLE freedb_oredrDB.contracts (
     start_date DATE NOT NULL,                           
     end_date DATE NOT NULL,                             
     amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
-    active BOOLEAN DEFAULT TRUE                        
+    active BOOLEAN DEFAULT TRUE, 
+    client_id INT NOT NULL,                            
+    FOREIGN KEY (client_id) REFERENCES freedb_oredrDB.users(id)
+                       
 )
 
 INSERT INTO freedb_oredrDB.contracts 

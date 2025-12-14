@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   FaFileContract,
   FaCalendarAlt,
@@ -32,6 +32,7 @@ interface Contract {
 
 const UserContractsPage = () => {
   const params = useParams();
+  const router = useRouter();
   const userId = params.id as string;
   const user = useUserStore((state) => state.user);
   const [filter, setFilter] = useState("all");
@@ -304,13 +305,11 @@ const UserContractsPage = () => {
     return matchesSearch && matchesFilter;
   });
 
-
   const calculateTotalAmount = () => {
     return contracts.reduce((total, contract) => {
       return total + parseFloat(contract.amount);
     }, 0);
   };
-
 
   const countActiveContracts = () => {
     return contracts.filter((contract) => {
@@ -677,7 +676,10 @@ const UserContractsPage = () => {
                             </button>
 
                             <button
-                              onClick={() => handleViewPricing(contract.id)}
+                              onClick={() => {
+                                handleViewPricing(contract.id);
+                                router.push(`/price/${user?.id}`);
+                              }}
                               className="text-[#5a6c7d] hover:text-[#4a5a6a] font-medium flex items-center"
                             >
                               <FaEye className="mr-1.5" />

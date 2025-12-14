@@ -20,6 +20,7 @@ import { User, useUserStore } from "@/store/userStore";
 import ConfirmModal from "../components/ui/ConfirmModal";
 
 interface Contract {
+  client_id: any;
   id: number;
   code: string;
   name: string;
@@ -635,7 +636,12 @@ const ContractsPage = () => {
                             </button>
 
                             <button
-                              onClick={() => handleViewPricing(contract.id)}
+                              onClick={() => {
+                                handleViewPricing(contract.id);
+                               router.push(
+                                 `/price?clientId=${contract.client_id}`
+                               );
+                              }}
                               className="text-[#5a6c7d] hover:text-[#4a5a6a] font-medium flex items-center"
                             >
                               <FaEye className="mr-1.5" />
