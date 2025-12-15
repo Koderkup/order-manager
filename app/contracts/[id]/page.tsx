@@ -96,18 +96,18 @@ const UserContractsPage = () => {
       setTimeout(() => {
         const currentUser = useUserStore.getState().user;
 
-        if (!currentUser) {
-          window.location.href = "/login";
-          return;
-        }
+        // if (!currentUser) {
+        //   window.location.href = "/login";
+        //   return;
+        // }
 
-        if (currentUser.role === "admin") {
+        if (currentUser?.role === "admin") {
           window.location.href = "/contracts";
           return;
         }
 
-        if (currentUser.id.toString() !== userId) {
-          window.location.href = `/contracts/${currentUser.id}`;
+        if (currentUser?.id.toString() !== userId) {
+          window.location.href = `/contracts/${currentUser?.id}`;
           return;
         }
 

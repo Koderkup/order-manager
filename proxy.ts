@@ -2,15 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 
-
 const protectedRoutes = {
   "/personal-account": {
     allowedRoles: ["client", "manager", "admin"],
-    checkUserId: true, 
-    adminBypass: true, 
+    checkUserId: true,
+    adminBypass: true,
   },
   "/users": {
-    allowedRoles: ["admin"], 
+    allowedRoles: ["admin"],
     checkUserId: false,
     adminBypass: false,
   },
@@ -32,110 +31,99 @@ const protectedRoutes = {
 };
 
 export async function proxy(request: NextRequest) {
-  const refreshToken = request.cookies.get("refresh_token")?.value;
   const pathname = request.nextUrl.pathname;
 
- 
+
+  const publicPaths = [
+    "/auth",
+    "/login", 
+    "/api/auth",
+    "/api/refresh",
+    "/api/checkAuth",
+    "/_next",
+    "/static",
+    "/",
+  ];
+
+
   if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/refresh") ||
-    pathname === "/auth" ||
-    pathname === "/" ||
-    pathname === "/api/checkAuth" ||
-    pathname.startsWith("/static") ||
-    pathname.includes(".")
+    publicPaths.some((path) => pathname === path || pathname.startsWith(path))
   ) {
     return NextResponse.next();
   }
 
-  
+  const refreshToken = request.cookies.get("refresh_token")?.value;
+
   if (!refreshToken) {
-    return NextResponse.redirect(new URL("/auth", request.url));
+    console.log(`Middleware: No refresh token, redirecting to /login`);
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   let payload = null;
 
-  
   try {
     payload = jwt.verify(
       refreshToken,
       process.env.NEXT_PUBLIC_JWT_SECRET!
     ) as any;
   } catch (error) {
-    console.log("Access token invalid, redirecting to auth");
-    return NextResponse.redirect(new URL("/auth", request.url));
+    console.log(`Middleware: Invalid refresh token, redirecting to /login`);
+
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    response.cookies.delete("refresh_token");
+    response.cookies.delete("access_token");
+    return response;
   }
 
- 
   if (!payload) {
-    return NextResponse.redirect(new URL("/auth", request.url));
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  
-  console.log(
-    `Checking access for ${pathname}, user role: ${payload.role}, user ID: ${
-      payload.userId || payload.id
-    }`
-  );
 
- 
   let routeMatched = false;
 
   for (const [route, config] of Object.entries(protectedRoutes)) {
     if (pathname.startsWith(route)) {
       routeMatched = true;
 
-      
+  
       if (!config.allowedRoles.includes(payload.role)) {
         console.log(
-          `Access denied: role ${payload.role} not allowed for ${route}`
+          `Middleware: Role ${payload.role} not allowed for ${route}`
         );
         return NextResponse.redirect(new URL("/403", request.url));
       }
 
-    
-      if (config.checkUserId) {
+
+      if (config.checkUserId && route === "/personal-account") {
         const pathSegments = pathname.split("/").filter(Boolean);
         if (pathSegments.length >= 2) {
           const userIdFromPath = pathSegments[1];
           const userId = payload.userId || payload.id;
 
-         
+  
           if (
             (payload.role !== "admin" || !config.adminBypass) &&
             String(userIdFromPath) !== String(userId)
           ) {
             console.log(
-              `Access denied: user ID mismatch (path: ${userIdFromPath}, token: ${userId})`
+              `Middleware: User ID mismatch, redirecting to /personal-account/${userId}`
             );
-            return NextResponse.redirect(new URL("/403", request.url));
+   
+            return NextResponse.redirect(
+              new URL(`/personal-account/${userId}`, request.url)
+            );
           }
         }
       }
 
-      console.log(`Access granted to ${pathname}`);
-      break; 
+      console.log(`Middleware: Access granted to ${pathname}`);
+      break;
     }
   }
 
-  if (!routeMatched && !pathname.startsWith("/api/")) {
-    console.log(
-      `Route ${pathname} not found in protected routes, denying access`
-    );
-    return NextResponse.redirect(new URL("/403", request.url));
-  }
-
-  
-  if (pathname.startsWith("/api/")) {
-    const publicApiEndpoints = ["/api/auth", "/api/refresh", "/api/checkAuth"];
-    const isPublicApi = publicApiEndpoints.some((endpoint) =>
-      pathname.startsWith(endpoint)
-    );
-
-    if (!isPublicApi && !refreshToken) {
-      return NextResponse.redirect(new URL("/auth", request.url));
-    }
+  if (!routeMatched) {
+    return NextResponse.next();
   }
 
   return NextResponse.next();
@@ -150,5 +138,3 @@ export const config = {
     "/my-orders/:path*",
   ],
 };
-
-

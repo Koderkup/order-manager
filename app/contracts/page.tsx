@@ -58,13 +58,13 @@ const ContractsPage = () => {
       try {
         const currentUser = useUserStore.getState().user;
 
-        if (!currentUser) {
-          router.push("/login");
-          return;
-        }
+        // if (!currentUser) {
+        //   router.push("/login");
+        //   return;
+        // }
 
-        if (currentUser.role !== "admin") {
-          router.push(`/contracts/${currentUser.id}`);
+        if (currentUser?.role !== "admin") {
+          router.push(`/contracts/${currentUser?.id}`);
           return;
         }
 
