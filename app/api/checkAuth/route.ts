@@ -24,10 +24,12 @@ export async function GET() {
 
       response.cookies.set("access_token", newAccessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production" ? true : false,
-        sameSite: "strict",
-        path: "/", 
-        maxAge: 60 * 15, 
+        secure: true,
+        sameSite: "none",
+        // secure: process.env.NODE_ENV === "production" ? true : false,
+        // sameSite: "strict",
+        // path: "/",
+        maxAge: 60 * 15,
       });
 
       return response;
@@ -62,9 +64,11 @@ export async function GET() {
 
         response.cookies.set("access_token", newAccessToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production" ? true : false,
-          sameSite: "strict",
-          path: "/",
+          secure: true,
+          sameSite: "none",
+          // secure: process.env.NODE_ENV === "production" ? true : false,
+          // sameSite: "strict",
+          // path: "/",
           maxAge: 60 * 15,
         });
 

@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
-:root {
+/* :root {
   --background: #FFFFFFF;
   --foreground: #171717;
-}
+} */
 
-.dark {
+/* .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
-}
+} */
 
 html,
 body {
