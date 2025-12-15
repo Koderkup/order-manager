@@ -28,26 +28,26 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetchWithAuth("/api/checkAuth", { method: "GET" });
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-          if (data.accessToken) {
-            localStorage.setItem("access_token", data.accessToken);
-          }
-        } else {
-          setUser(null);
-          localStorage.removeItem("access_token");
-        }
-      } catch (err) {
-        console.error("Ошибка авторизации:", err);
-        setUser(null);
-      }
-    })();
-  }, [setUser]);
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const res = await fetchWithAuth("/api/checkAuth", { method: "GET" });
+  //       if (res.ok) {
+  //         const data = await res.json();
+  //         setUser(data.user);
+  //         if (data.accessToken) {
+  //           localStorage.setItem("access_token", data.accessToken);
+  //         }
+  //       } else {
+  //         setUser(null);
+  //         localStorage.removeItem("access_token");
+  //       }
+  //     } catch (err) {
+  //       console.error("Ошибка авторизации:", err);
+  //       setUser(null);
+  //     }
+  //   })();
+  // }, [setUser]);
 
   const getRoleBorderColor = () => {
     if (!user || !user.role) return "border-gray-300";

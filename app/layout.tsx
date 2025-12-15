@@ -4,6 +4,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 import LayoutWrapper from "./components/LayoutWrapper";
 import { ToastProvider } from "./ToastProvider";
+import { AuthProvider } from "./AuthProvider";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -30,9 +32,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground h-screen md:h-screen`}
       >
         <Providers>
-          <ToastProvider>
-            <LayoutWrapper>{children}</LayoutWrapper>
-          </ToastProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <LayoutWrapper>{children}</LayoutWrapper>
+            </ToastProvider>
+          </AuthProvider>
         </Providers>
       </body>
     </html>
