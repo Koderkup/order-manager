@@ -44,7 +44,7 @@ export async function POST() {
     response.cookies.set("access_token", newAccessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "none",
+      sameSite: "lax",
       // secure: process.env.NODE_ENV === "production",
       // sameSite: "strict",
       // path: "/",

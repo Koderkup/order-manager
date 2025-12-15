@@ -25,7 +25,7 @@ export async function GET() {
       response.cookies.set("access_token", newAccessToken, {
         httpOnly: true,
         secure: true,
-        sameSite: "none",
+        sameSite: "lax",
         // secure: process.env.NODE_ENV === "production" ? true : false,
         // sameSite: "strict",
         // path: "/",
@@ -65,7 +65,7 @@ export async function GET() {
         response.cookies.set("access_token", newAccessToken, {
           httpOnly: true,
           secure: true,
-          sameSite: "none",
+          sameSite: "lax",
           // secure: process.env.NODE_ENV === "production" ? true : false,
           // sameSite: "strict",
           // path: "/",
