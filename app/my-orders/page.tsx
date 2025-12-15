@@ -13,7 +13,7 @@ export default function MyOrdersRedirect() {
     } else {
       router.push("/auth");
     }
-  }, [user, router]);
+  }, [router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

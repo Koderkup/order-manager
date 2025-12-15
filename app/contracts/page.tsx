@@ -76,7 +76,7 @@ const ContractsPage = () => {
     };
 
     checkAuthAndRole();
-  }, [router, user]);
+  }, [router]);
 
   const loadContracts = async () => {
     try {

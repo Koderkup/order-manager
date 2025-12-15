@@ -30,18 +30,18 @@ const PricePage = () => {
   const [priceItems, setPriceItems] = useState<PriceItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-const router = useRouter();
+  const router = useRouter();
 
-useEffect(() => {
-  if (user) {
-    if (user.role !== "admin") {
-      router.push(`/price/${user.id}`);
-      return; 
+  useEffect(() => {
+    if (user) {
+      if (user.role !== "admin") {
+        router.push(`/price/${user.id}`);
+        return;
+      }
+      const urlParams = new URLSearchParams(window.location.search);
+      const clientIdFromUrl = urlParams.get("clientId");
     }
-    const urlParams = new URLSearchParams(window.location.search);
-    const clientIdFromUrl = urlParams.get("clientId");
-  }
-}, [user, router]);
+  }, [router]);
 
   const fetchUserContracts = async () => {
     try {
@@ -67,10 +67,13 @@ useEffect(() => {
         return;
       }
 
-      const response = await fetch(`/api/admin-query-contracts/${targetUserId}`, {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await fetch(
+        `/api/admin-query-contracts/${targetUserId}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
 
       const data = await response.json();
       console.log("Contracts data:", data);
