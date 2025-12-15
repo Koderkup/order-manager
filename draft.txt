@@ -1,2626 +1,321 @@
-
-
-
-1======
-CREATE TABLE freedb_oredrDB.users (
-    id INT AUTO_INCREMENT PRIMARY KEY,                
-    role ENUM('admin', 'client', 'manager') DEFAULT 'client', 
-    email VARCHAR(255) NOT NULL UNIQUE,               
-    password VARCHAR(255) NOT NULL,                   
-    access TINYINT(1) NOT NULL DEFAULT 0 CHECK (access IN (0,1)),              
-    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,   
-    code VARCHAR(20),                                 
-    name VARCHAR(150),                                
-    inn CHAR(12),                                     
-    kpp CHAR(9),                                     
-    legal_address VARCHAR(500),                       
-    actual_address VARCHAR(500),                      
-    active BOOLEAN DEFAULT TRUE, 
-    phone VARCHAR(20), NULL                                )                     
-);
-
-seeds users
-INSERT INTO freedb_oredrDB.users 
-(`role`, `email`, `password`, `access`, `code`, `name`, `inn`, `kpp`, `legal_address`, `actual_address`, `active`)
-VALUES
-('admin',   'admin@example.com',   'hashed_admin_pass',   1, 'A001', 'ООО "АдминСервис"',   '123456789012', '123456789', 'г. Минск, ул. Центральная, д.1', 'г. Минск, ул. Рабочая, д.2', 1),
-('client',  'client1@example.com', 'hashed_client_pass',  0, 'C101', 'ИП Иванов Иван',      '987654321098', '987654321', 'г. Витебск, ул. Ленина, д.10',   'г. Витебск, ул. Советская, д.15', 1),
-('manager', 'manager@example.com', 'hashed_manager_pass', 1, 'M501', 'ООО "Менеджмент"',    '111222333444', '111222333', 'г. Гродно, ул. Победы, д.5',     'г. Гродно, ул. Кирова, д.7', 1),
-('client',  'client2@example.com', 'hashed_client2_pass', 0, 'C102', 'ИП Петров Петр',      '222333444555', '222333444', 'г. Брест, ул. Гагарина, д.20',   'г. Брест, ул. Октябрьская, д.25', 0),
-('manager', 'manager2@example.com','hashed_manager2_pass',1, 'M502', 'ООО "Управление"',    '333444555666', '333444555', 'г. Могилёв, ул. Садовая, д.30',  'г. Могилёв, ул. Полевая, д.35', 1);
-
-2=====
-CREATE TABLE freedb_oredrDB.contracts (
-    id INT AUTO_INCREMENT PRIMARY KEY,                 
-    code VARCHAR(20) UNIQUE,                            
-    name VARCHAR(150) NOT NULL,                        
-    start_date DATE NOT NULL,                           
-    end_date DATE NOT NULL,                             
-    amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
-    active BOOLEAN DEFAULT TRUE, 
-    client_id INT NOT NULL,                            
-    FOREIGN KEY (client_id) REFERENCES freedb_oredrDB.users(id)
-                       
-)
-
-INSERT INTO freedb_oredrDB.contracts 
-    (code, name, start_date, end_date, amount, active)
-VALUES
-    ('C-001', 'Договор поставки оборудования', '2025-01-01', '2025-12-31', 1500000.00, TRUE),
-    ('C-002', 'Договор аренды офиса', '2025-02-01', '2026-01-31', 300000.00, TRUE),
-    ('C-003', 'Договор на маркетинговые услуги', '2025-03-15', '2025-09-15', 500000.00, TRUE),
-    ('C-004', 'Договор на IT‑поддержку', '2025-04-01', '2026-03-31', 200000.00, TRUE),
-    ('C-005', 'Договор на транспортные услуги', '2025-05-01', '2025-11-30', 75000.00, TRUE),
-    ('C-006', 'Договор на поставку сырья', '2025-06-01', '2025-12-31', 1200000.00, TRUE),
-    ('C-007', 'Договор на обучение персонала', '2025-07-01', '2025-07-31', 45000.00, FALSE),
-    ('C-008', 'Договор на консалтинг', '2025-08-01', '2025-12-31', 250000.00, TRUE),
-    ('C-009', 'Договор на ремонт оборудования', '2025-09-01', '2025-10-15', 60000.00, FALSE),
-    ('C-010', 'Договор на поставку мебели', '2025-10-01', '2026-03-31', 180000.00, TRUE);
-
-
-3======
-
-CREATE TABLE freedb_oredrDB.specifications (
-    id INT AUTO_INCREMENT PRIMARY KEY,                 
-    code VARCHAR(20) UNIQUE,                            
-    name VARCHAR(150) NOT NULL,                         
-    contract_id INT NOT NULL,                           
-    start_date DATE NOT NULL,                           
-    end_date DATE NOT NULL,                             
-    amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
-    active BOOLEAN DEFAULT TRUE,                        
-    FOREIGN KEY (contract_id) REFERENCES freedb_oredrDB.contracts(id)
-)
-
-
-
-INSERT INTO freedb_oredrDB.specifications 
-    (code, name, contract_id, start_date, end_date, amount, active)
-VALUES
-    ('S-001', 'Спецификация на поставку серверов', 1, '2025-01-01', '2025-06-30', 800000.00, TRUE),
-    ('S-002', 'Спецификация на поставку рабочих станций', 1, '2025-07-01', '2025-12-31', 700000.00, TRUE),
-
-    ('S-003', 'Спецификация аренды конференц-зала', 2, '2025-02-01', '2025-06-30', 120000.00, TRUE),
-    ('S-004', 'Спецификация аренды офисных помещений', 2, '2025-07-01', '2026-01-31', 180000.00, TRUE),
-
-    ('S-005', 'Спецификация маркетинговой кампании весна', 3, '2025-03-15', '2025-06-15', 250000.00, TRUE),
-    ('S-006', 'Спецификация маркетинговой кампания осень', 3, '2025-07-01', '2025-09-15', 250000.00, FALSE),
-
-    ('S-007', 'Спецификация IT‑поддержки серверов', 4, '2025-04-01', '2025-09-30', 100000.00, TRUE),
-    ('S-008', 'Спецификация IT‑поддержки рабочих мест', 4, '2025-10-01', '2026-03-31', 100000.00, TRUE),
-
-    ('S-009', 'Спецификация транспортных услуг по маршруту Минск‑Витебск', 5, '2025-05-01', '2025-08-31', 40000.00, TRUE),
-    ('S-010', 'Спецификация транспортных услуг по маршруту Минск‑Гродно', 5, '2025-09-01', '2025-11-30', 35000.00, FALSE);
-
-
-4=====
-CREATE TABLE freedb_oredrDB.products (
-    id INT AUTO_INCREMENT PRIMARY KEY,        
-    code VARCHAR(20) UNIQUE,                  
-    name VARCHAR(150) NOT NULL,               
-    article VARCHAR(20) UNIQUE,               
-    price DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-    active BOOLEAN DEFAULT TRUE               
-)
-
-
-INSERT INTO freedb_oredrDB.products 
-    (code, name, article, price, active)
-VALUES
-    ('P-001', 'Сервер Dell PowerEdge R740', 'SRV-001', 450000.00, TRUE),
-    ('P-002', 'Рабочая станция HP Z4 G5', 'WS-002', 120000.00, TRUE),
-    ('P-003', 'Ноутбук Lenovo ThinkPad X1', 'NB-003', 95000.00, TRUE),
-    ('P-004', 'Принтер Canon LBP223dw', 'PRN-004', 25000.00, TRUE),
-    ('P-005', 'Маршрутизатор Cisco RV345', 'RTR-005', 40000.00, TRUE),
-    ('P-006', 'Стул офисный эргономичный', 'CHR-006', 8000.00, TRUE),
-    ('P-007', 'Стол письменный деревянный', 'TBL-007', 15000.00, TRUE),
-    ('P-008', 'Картридж Canon 057H', 'CRT-008', 12000.00, TRUE),
-    ('P-009', 'Монитор Samsung 27" UHD', 'MON-009', 30000.00, TRUE),
-    ('P-010', 'Телефон IP Yealink T46U', 'TEL-010', 18000.00, TRUE),
-    ('P-011', 'Кабель HDMI 2.1 (3м)', 'CBL-011', 1500.00, TRUE),
-    ('P-012', 'Система видеонаблюдения Hikvision', 'CCTV-012', 75000.00, FALSE)
-
-5======
-    CREATE TABLE freedb_oredrDB.specification_products (
-    id INT AUTO_INCREMENT PRIMARY KEY,               
-    specification_id INT NOT NULL,                    
-    product_id INT NOT NULL,                           
-    price DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
-    FOREIGN KEY (specification_id) REFERENCES freedb_oredrDB.specifications(id),
-    FOREIGN KEY (product_id) REFERENCES freedb_oredrDB.products(id),
-    UNIQUE (specification_id, product_id)             
-);
-
-
-6======
-
-CREATE TABLE freedb_oredrDB.orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,                  
-    number VARCHAR(12) UNIQUE NOT NULL,                 
-    order_date DATE NOT NULL,                          
-    status ENUM('Новый', 'Оформлен', 'Отменен') 
-           NOT NULL DEFAULT 'Новый',                    
-    client_id INT NOT NULL,                            
-    contract_id INT NOT NULL,                          
-    specification_id INT NOT NULL,                      
-    amount DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
-    FOREIGN KEY (client_id) REFERENCES freedb_oredrDB.users(id),
-    FOREIGN KEY (contract_id) REFERENCES freedb_oredrDB.contracts(id),
-    FOREIGN KEY (specification_id) REFERENCES freedb_oredrDB.specifications(id)
-)
-
-INSERT INTO freedb_oredrDB.orders 
-    (number, order_date, status, client_id, contract_id, specification_id, amount)
-VALUES
-    ('ORD-0001', '2025-01-10', 'Новый',     1, 1, 1, 450000.00),
-    ('ORD-0002', '2025-01-15', 'Оформлен',  2, 1, 2, 240000.00),
-    ('ORD-0003', '2025-02-05', 'Отменен',   3, 2, 3, 120000.00),
-    ('ORD-0004', '2025-02-20', 'Новый',     4, 2, 4, 180000.00),
-    ('ORD-0005', '2025-03-18', 'Оформлен',  5, 3, 5, 250000.00),
-    ('ORD-0006', '2025-04-02', 'Новый',     6, 3, 6, 250000.00),
-    ('ORD-0007', '2025-04-25', 'Оформлен',  1, 4, 7, 100000.00),
-    ('ORD-0008', '2025-05-10', 'Отменен',   2, 4, 8, 100000.00),
-    ('ORD-0009', '2025-06-01', 'Новый',     3, 5, 9, 40000.00),
-    ('ORD-0010', '2025-06-15', 'Оформлен',  4, 5, 10, 35000.00);
-
-7=====
-CREATE TABLE freedb_oredrDB.order_products (
-    id INT AUTO_INCREMENT PRIMARY KEY,                
-    order_id INT NOT NULL,                             
-    product_id INT NOT NULL,                           
-    price DECIMAL(15,2) NOT NULL DEFAULT 0.00,         
-    quantity INT(10) NOT NULL DEFAULT 1,               
-    total DECIMAL(15,2) GENERATED ALWAYS AS (price * quantity) STORED, 
-    FOREIGN KEY (order_id) REFERENCES freedb_oredrDB.orders(id),
-    FOREIGN KEY (product_id) REFERENCES freedb_oredrDB.products(id),
-    UNIQUE (order_id, product_id)                     
-)
-
-INSERT INTO freedb_oredrDB.order_products 
-    (order_id, product_id, price, quantity)
-VALUES
-    (11, 1, 450000.00, 1),   
-    (11, 9, 30000.00, 2),    
-    (12, 2, 120000.00, 1),   
-    (12, 4, 25000.00, 1),   
-    (13, 6, 8000.00, 10),   
-    (13, 7, 15000.00, 5),    
-    (14, 3, 95000.00, 2),    
-    (14, 11, 1500.00, 5),   
-    (15, 8, 12000.00, 3), 
-    (15, 10, 18000.00, 2),  
-    (16, 5, 40000.00, 1),    
-    (16, 12, 75000.00, 1),   
-    (17, 2, 115000.00, 1),   
-    (17, 3, 95000.00, 1),    
-    (18, 4, 25000.00, 2),    
-    (18, 11, 1500.00, 10),  
-    (19, 6, 8000.00, 4),    
-    (19, 7, 15000.00, 2),   
-    (20, 9, 30000.00, 1),  
-    (20, 10, 18000.00, 1);  
-
-
-Вопросы к Павлу:
-order_products.total Сделал вычисляемое поле. Но имей в виду: если цена или количество изменятся, MySQL пересчитает автоматически, а вот если нужно хранить «историческую» сумму (например, при изменении цены товара), иногда лучше хранить её явно.
-
-contracts.amount и specifications.amount Сейчас это просто сумма. В реальной системе часто делают так: сумма считается агрегатом по связанным товарам. 
-
-
-//1-й вариант
-
-// import { NextResponse } from "next/server";
-// import { cookies } from "next/headers";
-// import jwt from "jsonwebtoken";
-
-// export async function GET() {
-//   const cookieStore = await cookies();
-//   const accessToken = cookieStore.get("access_token")?.value;
-
-//   if (!accessToken) {
-//     return NextResponse.json({ error: "Нет access токена" }, { status: 401 });
-//   }
-
-//   try {
-//     const payload = jwt.verify(
-//       accessToken,
-//       process.env.NEXT_PUBLIC_JWT_SECRET!
-//     ) as any;
-
-//     return NextResponse.json({
-//       message: "Токен валиден",
-//       user: {
-//         id: payload.id,
-//         name: payload.name,
-//         sirname: payload.sirname,
-//         email: payload.email,
-//         inn: payload.inn,
-//         role: payload.role,
-//         access: payload.access,
-//       },
-//     });
-//   } catch {
-//     return NextResponse.json(
-//       { error: "Access токен недействителен" },
-//       { status: 401 }
-//     );
-//   }
-// }
-
-// если брать пользователя из базы данных
-// import { NextResponse } from "next/server";
-// import { cookies } from "next/headers";
-// import jwt from "jsonwebtoken";
-// import { getConnection } from "@/lib/db";
-// import { createAccessToken } from "@/utils/generateToken";
-
-// export async function GET() {
-//   const cookieStore = await cookies();
-//   const accessToken = cookieStore.get("access_token")?.value;
-//   const refreshToken = cookieStore.get("refresh_token")?.value;
-
-//   const getUserFromDb = async (id: number) => {
-//     const conn = await getConnection();
-//     const [rows] = await conn.execute("SELECT * FROM users WHERE id = ?", [id]);
-//     return (rows as any[])[0];
-//   };
-
-//   // Если access нет, но есть refresh
-//   if (!accessToken && refreshToken) {
-//     try {
-//       const payload = jwt.verify(refreshToken, process.env.JWT_SECRET!) as any;
-//       const user = await getUserFromDb(payload.id);
-//       const newAccessToken = createAccessToken(user);
-
-//       const response = NextResponse.json({ user });
-//       response.cookies.set("access_token", newAccessToken, {
-//         httpOnly: true,
-//         secure: process.env.NODE_ENV === "production",
-//         sameSite: "strict",
-//         maxAge: 60 * 15,
-//       });
-//       return response;
-//     } catch {
-//       return NextResponse.json({ error: "Refresh истёк" }, { status: 401 });
-//     }
-//   }
-
-//   // Если access есть
-//   if (accessToken) {
-//     try {
-//       const payload = jwt.verify(accessToken, process.env.JWT_SECRET!) as any;
-//       const user = await getUserFromDb(payload.id);
-//       return NextResponse.json({ user });
-//     } catch {
-//       if (!refreshToken) {
-//         return NextResponse.json({ error: "Нет токенов" }, { status: 401 });
-//       }
-//       try {
-//         const payload = jwt.verify(
-//           refreshToken,
-//           process.env.JWT_SECRET!
-//         ) as any;
-//         const user = await getUserFromDb(payload.id);
-//         const newAccessToken = createAccessToken(user);
-
-//         const response = NextResponse.json({ user });
-//         response.cookies.set("access_token", newAccessToken, {
-//           httpOnly: true,
-//           secure: process.env.NODE_ENV === "production",
-//           sameSite: "strict",
-//           maxAge: 60 * 15,
-//         });
-//         return response;
-//       } catch {
-//         return NextResponse.json({ error: "Refresh истёк" }, { status: 401 });
-//       }
-//     }
-//   }
-
-//   return NextResponse.json({ error: "Нет токенов" }, { status: 401 });
-// }
-
-
-  { /*   {/* Sidebar */}
-      <aside className="w-full md:w-72 bg-white border-b md:border-r border-gray-200 flex flex-col shadow-md">
-        {/* Logo */}
-        <div className="flex items-center px-6 py-6 border-b border-gray-200">
-          <i className="fas fa-building text-2xl text-gray-600 mr-3"></i>
-          <h1 className="text-xl font-semibold text-gray-800">
-            Личный кабинет
-          </h1>
-        </div>
-
-        {/* User profile */}
-        <div className="flex items-center px-6 py-6 border-b border-gray-200">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center text-white text-lg font-medium mr-4">
-            {user.code ?? "??"}
-          </div>
-          <div>
-            <h3 className="text-lg font-medium text-gray-800">{user.name}</h3>
-            <p className="text-sm text-gray-500">{user.email}</p>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 py-4 flex md:block overflow-x-auto md:overflow-visible">
-          <button className="flex items-center w-full px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-800 border-l-4 md:border-l-4 border-transparent hover:border-gray-300 transition">
-            <i className="fas fa-user w-6 mr-3"></i>
-            <span>Профиль</span>
-          </button>
-          <button className="flex items-center w-full px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-800 border-l-4 md:border-l-4 border-transparent hover:border-gray-300 transition">
-            <i className="fas fa-file-contract w-6 mr-3"></i>
-            <span>Договора</span>
-          </button>
-          <button className="flex items-center w-full px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-800 border-l-4 md:border-l-4 border-transparent hover:border-gray-300 transition">
-            <i className="fas fa-shopping-cart w-6 mr-3"></i>
-            <span>Заказы</span>
-          </button>
-          <button className="flex items-center w-full px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-800 border-l-4 md:border-l-4 border-transparent hover:border-gray-300 transition">
-            <i className="fas fa-tags w-6 mr-3"></i>
-            <span>Прайс-лист</span>
-          </button>
-        </nav>
-
-        {/* Logout */}
-        <div className="px-6 py-6 border-t border-gray-200">
-          <button className="w-full flex items-center justify-center px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition">
-            <i className="fas fa-sign-out-alt mr-2"></i>
-            Выйти из аккаунта
-          </button>
-        </div>
-      </aside>
-
-old auth/page.tsx=====================================================
-
-// "use client";
-// import { useState } from "react";
-// import { FaEye, FaEyeSlash } from "react-icons/fa";
-// import { useRouter } from "next/navigation";
-// import { useUserStore } from "@/store/userStore";
-
-// export default function AuthPage() {
-//   const [isRegister, setIsRegister] = useState(false);
-//   const [showPassword, setShowPassword] = useState(false);
-//   const router = useRouter();
-//   const setUser = useUserStore((state) => state.setUser);
-
-//   const [formData, setFormData] = useState({
-//     email: "",
-//     password: "",
-//     code: "",
-//     name: "",
-//     inn: "",
-//     kpp: "",
-//     legal_address: "",
-//     actual_address: "",
-//   });
-
-//   const [message, setMessage] = useState("");
-
-//   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     setFormData({ ...formData, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setMessage("");
-
-//     try {
-//       if (isRegister) {
-//         const res = await fetch("/api/register", {
-//           method: "POST",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify({
-//             email: formData.email,
-//             password: formData.password,
-//             code: formData.code,
-//             name: formData.name,
-//             inn: formData.inn,
-//             kpp: formData.kpp,
-//             legal_address: formData.legal_address,
-//             actual_address: formData.actual_address,
-//           }),
-//         });
-//         const data = await res.json();
-//         if (res.ok) {
-//           setMessage("Регистрация успешна!");
-//           setIsRegister(false);
-//           setUser(data.user);
-//           router.push("/personal-account");
-//         } else {
-//           setMessage(data.error || "Ошибка регистрации");
-//         }
-//       } else {
-//         const res = await fetch("/api/login", {
-//           method: "POST",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify({
-//             email: formData.email,
-//             password: formData.password,
-//           }),
-//         });
-//         const data = await res.json();
-//         if (res.ok) {
-//           setMessage("Авторизация успешна!");
-//           setUser(data.user);
-//           router.push("/personal-account");
-//         } else {
-//           setMessage(data.error || "Ошибка авторизации");
-//         }
-//       }
-//     } catch (err: any) {
-//       setMessage("Ошибка: " + err.message);
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground transition-colors duration-300">
-//       <div className="w-full max-w-md bg-background text-foreground shadow-lg rounded-lg p-6 border border-gray-300 dark:border-gray-700">
-//         <h1 className="text-2xl font-bold mb-4 text-center">
-//           {isRegister ? "Регистрация" : "Авторизация"}
-//         </h1>
-
-//         <form className="space-y-4" onSubmit={handleSubmit}>
-//           {isRegister && (
-//             <>
-//               <div>
-//                 <label className="block mb-1">Код</label>
-//                 <input
-//                   type="text"
-//                   name="code"
-//                   value={formData.code}
-//                   onChange={handleChange}
-//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
-//                   required
-//                 />
-//               </div>
-//               <div>
-//                 <label className="block mb-1">Наименование</label>
-//                 <input
-//                   type="text"
-//                   name="name"
-//                   value={formData.name}
-//                   onChange={handleChange}
-//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
-//                   required
-//                 />
-//               </div>
-//               <div>
-//                 <label className="block mb-1">ИНН</label>
-//                 <input
-//                   type="text"
-//                   name="inn"
-//                   value={formData.inn}
-//                   onChange={handleChange}
-//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
-//                   required
-//                   maxLength={12} // максимум 12 символов
-//                   pattern="\d{10,12}"
-//                 />
-//               </div>
-//               <div>
-//                 <label className="block mb-1">КПП</label>
-//                 <input
-//                   type="text"
-//                   name="kpp"
-//                   value={formData.kpp}
-//                   onChange={handleChange}
-//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
-//                   maxLength={9} // максимум 9 символов
-//                   pattern="\d{9}"
-//                 />
-//               </div>
-//               <div>
-//                 <label className="block mb-1">Юридический адрес</label>
-//                 <input
-//                   type="text"
-//                   name="legal_address"
-//                   value={formData.legal_address}
-//                   onChange={handleChange}
-//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
-//                 />
-//               </div>
-//               <div>
-//                 <label className="block mb-1">Фактический адрес</label>
-//                 <input
-//                   type="text"
-//                   name="actual_address"
-//                   value={formData.actual_address}
-//                   onChange={handleChange}
-//                   className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
-//                 />
-//               </div>
-//             </>
-//           )}
-
-//           <div>
-//             <label className="block mb-1">Email</label>
-//             <input
-//               type="email"
-//               name="email"
-//               value={formData.email}
-//               onChange={handleChange}
-//               className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
-//               required
-//             />
-//           </div>
-
-//           <div className="relative">
-//             <label className="block mb-1">Пароль</label>
-//             <input
-//               type={showPassword ? "text" : "password"}
-//               name="password"
-//               value={formData.password}
-//               onChange={handleChange}
-//               className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600"
-//               required
-//               minLength={6}
-//             />
-//             <button
-//               type="button"
-//               onClick={() => setShowPassword(!showPassword)}
-//               className="absolute right-3 top-8 text-gray-500 dark:text-gray-400"
-//             >
-//               {showPassword ? <FaEyeSlash /> : <FaEye />}
-//             </button>
-//           </div>
-
-//           <button
-//             type="submit"
-//             className="w-full py-2 rounded font-medium bg-yellow-300 text-gray-800 shadow-md hover:shadow-lg hover:bg-yellow-400 transition"
-//           >
-//             {isRegister ? "Зарегистрироваться" : "Войти"}
-//           </button>
-//         </form>
-
-//         {message && (
-//           <p className="mt-4 text-center text-sm text-red-500">{message}</p>
-//         )}
-
-//         <p className="mt-4 text-center text-sm">
-//           {isRegister ? (
-//             <>
-//               Уже есть аккаунт?{" "}
-//               <button
-//                 onClick={() => setIsRegister(false)}
-//                 className="text-blue-600 hover:underline"
-//               >
-//                 Войти
-//               </button>
-//             </>
-//           ) : (
-//             <>
-//               Нет аккаунта?{" "}
-//               <button
-//                 onClick={() => setIsRegister(true)}
-//                 className="text-blue-600 hover:underline"
-//               >
-//                 Зарегистрироваться
-//               </button>
-//             </>
-//           )}
-//         </p>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-++++another auth/page.tsx================================================
-
-// "use client";
-
-// import { useState } from "react";
-// import {
-//   FaEye,
-//   FaEyeSlash,
-//   FaLeaf,
-//   FaEnvelope,
-//   FaLock,
-//   FaShieldAlt,
-//   FaSyncAlt,
-//   FaChartLine,
-//   FaHeadset,
-//   FaCheckCircle,
-//   FaSignInAlt,
-//   FaUserPlus,
-// } from "react-icons/fa";
-// import { useRouter } from "next/navigation";
-// import { useUserStore } from "@/store/userStore";
-
-// export default function AuthPage() {
-//   const [isRegister, setIsRegister] = useState(false);
-//   const [showPassword, setShowPassword] = useState(false);
-//   const router = useRouter();
-//   const setUser = useUserStore((state) => state.setUser);
-
-//   const [formData, setFormData] = useState({
-//     email: "",
-//     password: "",
-//     code: "",
-//     name: "",
-//     inn: "",
-//     kpp: "",
-//     legal_address: "",
-//     actual_address: "",
-//   });
-
-//   const [message, setMessage] = useState("");
-
-//   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     setFormData({ ...formData, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setMessage("");
-
-//     try {
-//       if (isRegister) {
-//         const res = await fetch("/api/register", {
-//           method: "POST",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify({
-//             email: formData.email,
-//             password: formData.password,
-//             code: formData.code,
-//             name: formData.name,
-//             inn: formData.inn,
-//             kpp: formData.kpp,
-//             legal_address: formData.legal_address,
-//             actual_address: formData.actual_address,
-//           }),
-//         });
-//         const data = await res.json();
-//         if (res.ok) {
-//           setMessage("Регистрация успешна!");
-//           setIsRegister(false);
-//           setUser(data.user);
-//           // Добавим задержку для отображения сообщения
-//           setTimeout(() => {
-//             router.push("/personal-account");
-//           }, 1500);
-//         } else {
-//           setMessage(data.error || "Ошибка регистрации");
-//         }
-//       } else {
-//         const res = await fetch("/api/login", {
-//           method: "POST",
-//           headers: { "Content-Type": "application/json" },
-//           body: JSON.stringify({
-//             email: formData.email,
-//             password: formData.password,
-//           }),
-//         });
-//         const data = await res.json();
-//         if (res.ok) {
-//           setMessage("Авторизация успешна!");
-//           setUser(data.user);
-//           // Сохраняем токен если он есть
-//           if (data.accessToken) {
-//             localStorage.setItem("access_token", data.accessToken);
-//           }
-//           // Обновляем userStore
-//           localStorage.setItem(
-//             "user-storage",
-//             JSON.stringify({ user: data.user })
-//           );
-
-//           setTimeout(() => {
-//             router.push("/personal-account");
-//             router.refresh(); // Принудительно обновляем страницу
-//           }, 1500);
-//         } else {
-//           setMessage(data.error || "Ошибка авторизации");
-//         }
-//       }
-//     } catch (err: any) {
-//       setMessage("Ошибка: " + err.message);
-//     }
-//   };
-
-//   const buttonColor = "#3E4F5F";
-//   const buttonColorHover = "#2d3a47";
-
-//   return (
-//     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-100">
-//       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-//         <div className="flex flex-col lg:flex-row">
-//           {/* Левая часть - Форма */}
-//           <div className="lg:w-1/2 p-8 md:p-10 lg:p-12">
-//             <div className="flex items-center mb-8">
-//               <FaLeaf className="text-2xl" style={{ color: buttonColor }} />
-//               <h1 className="text-2xl font-semibold text-gray-900 ml-3">
-//                 Приложение
-//               </h1>
-//             </div>
-
-//             <h2 className="text-2xl md:text-3xl font-medium text-gray-900 mb-2">
-//               {isRegister ? "Регистрация" : "Вход в систему"}
-//             </h2>
-//             <p className="text-gray-600 mb-8">
-//               {isRegister
-//                 ? "Заполните форму для создания учетной записи"
-//                 : "Пожалуйста, введите свои учетные данные для доступа к вашему аккаунту"}
-//             </p>
-
-//             {/* Сообщение */}
-//             {message && (
-//               <div
-//                 className={`p-4 rounded-xl mb-6 flex items-center justify-center ${
-//                   message.includes("успешн")
-//                     ? "bg-green-500 text-white"
-//                     : "bg-red-100 text-red-700 border border-red-200"
-//                 }`}
-//               >
-//                 {message.includes("успешн") && (
-//                   <FaCheckCircle className="mr-2" />
-//                 )}
-//                 <span className="font-medium">{message}</span>
-//               </div>
-//             )}
-
-//             <form onSubmit={handleSubmit} className="space-y-6">
-//               {isRegister && (
-//                 <>
-//                   <div>
-//                     <label className="block text-gray-700 font-medium mb-2 text-sm">
-//                       Код
-//                     </label>
-//                     <input
-//                       type="text"
-//                       name="code"
-//                       value={formData.code}
-//                       onChange={handleChange}
-//                       className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
-//                       required
-//                     />
-//                   </div>
-
-//                   <div>
-//                     <label className="block text-gray-700 font-medium mb-2 text-sm">
-//                       Наименование
-//                     </label>
-//                     <input
-//                       type="text"
-//                       name="name"
-//                       value={formData.name}
-//                       onChange={handleChange}
-//                       className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
-//                       required
-//                     />
-//                   </div>
-
-//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                     <div>
-//                       <label className="block text-gray-700 font-medium mb-2 text-sm">
-//                         ИНН
-//                       </label>
-//                       <input
-//                         type="text"
-//                         name="inn"
-//                         value={formData.inn}
-//                         onChange={handleChange}
-//                         className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
-//                         required
-//                         maxLength={12}
-//                         pattern="\d{10,12}"
-//                       />
-//                     </div>
-
-//                     <div>
-//                       <label className="block text-gray-700 font-medium mb-2 text-sm">
-//                         КПП
-//                       </label>
-//                       <input
-//                         type="text"
-//                         name="kpp"
-//                         value={formData.kpp}
-//                         onChange={handleChange}
-//                         className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
-//                         maxLength={9}
-//                         pattern="\d{9}"
-//                       />
-//                     </div>
-//                   </div>
-
-//                   <div>
-//                     <label className="block text-gray-700 font-medium mb-2 text-sm">
-//                       Юридический адрес
-//                     </label>
-//                     <input
-//                       type="text"
-//                       name="legal_address"
-//                       value={formData.legal_address}
-//                       onChange={handleChange}
-//                       className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
-//                     />
-//                   </div>
-
-//                   <div>
-//                     <label className="block text-gray-700 font-medium mb-2 text-sm">
-//                       Фактический адрес
-//                     </label>
-//                     <input
-//                       type="text"
-//                       name="actual_address"
-//                       value={formData.actual_address}
-//                       onChange={handleChange}
-//                       className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
-//                     />
-//                   </div>
-//                 </>
-//               )}
-
-//               <div>
-//                 <label className="block text-gray-700 font-medium mb-2 text-sm">
-//                   Электронная почта
-//                 </label>
-//                 <div className="relative">
-//                   <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-//                   <input
-//                     type="email"
-//                     name="email"
-//                     value={formData.email}
-//                     onChange={handleChange}
-//                     className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
-//                     required
-//                     placeholder="ваш.email@пример.com"
-//                   />
-//                 </div>
-//               </div>
-
-//               <div>
-//                 <label className="block text-gray-700 font-medium mb-2 text-sm">
-//                   Пароль
-//                 </label>
-//                 <div className="relative">
-//                   <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-//                   <input
-//                     type={showPassword ? "text" : "password"}
-//                     name="password"
-//                     value={formData.password}
-//                     onChange={handleChange}
-//                     className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500/20 transition-all"
-//                     required
-//                     minLength={6}
-//                     placeholder="Введите ваш пароль"
-//                   />
-//                   <button
-//                     type="button"
-//                     onClick={() => setShowPassword(!showPassword)}
-//                     className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-//                   >
-//                     {showPassword ? <FaEyeSlash /> : <FaEye />}
-//                   </button>
-//                 </div>
-//               </div>
-
-//               {!isRegister && (
-//                 <div className="flex justify-between items-center">
-//                   <div className="flex items-center">
-//                     <input
-//                       type="checkbox"
-//                       id="remember"
-//                       className="w-4 h-4 rounded focus:ring-gray-500/20 border-gray-300"
-//                       style={{ accentColor: buttonColor }}
-//                     />
-//                     <label
-//                       htmlFor="remember"
-//                       className="ml-2 text-gray-700 text-sm"
-//                     >
-//                       Запомнить меня
-//                     </label>
-//                   </div>
-//                   <button
-//                     type="button"
-//                     className="text-sm font-medium hover:underline"
-//                     style={{ color: buttonColor }}
-//                   >
-//                     Забыли пароль?
-//                   </button>
-//                 </div>
-//               )}
-
-//               <button
-//                 type="submit"
-//                 className="w-full text-white py-4 px-6 rounded-xl font-medium transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90 flex items-center justify-center gap-2"
-//                 style={{
-//                   backgroundColor: buttonColor,
-//                   boxShadow: "0 5px 15px rgba(62, 79, 95, 0.15)",
-//                 }}
-//                 onMouseOver={(e) => {
-//                   e.currentTarget.style.backgroundColor = buttonColorHover;
-//                 }}
-//                 onMouseOut={(e) => {
-//                   e.currentTarget.style.backgroundColor = buttonColor;
-//                 }}
-//               >
-//                 {isRegister ? (
-//                   <>
-//                     <FaUserPlus />
-//                     Зарегистрироваться
-//                   </>
-//                 ) : (
-//                   <>
-//                     <FaSignInAlt />
-//                     Войти
-//                   </>
-//                 )}
-//               </button>
-//             </form>
-
-//             <div className="text-center text-gray-600 text-sm mt-8">
-//               {isRegister ? (
-//                 <>
-//                   Уже есть аккаунт?{" "}
-//                   <button
-//                     onClick={() => setIsRegister(false)}
-//                     className="font-medium hover:underline"
-//                     style={{ color: buttonColor }}
-//                   >
-//                     Войти
-//                   </button>
-//                 </>
-//               ) : (
-//                 <>
-//                   Нет учетной записи?{" "}
-//                   <button
-//                     onClick={() => setIsRegister(true)}
-//                     className="font-medium hover:underline"
-//                     style={{ color: buttonColor }}
-//                   >
-//                     Зарегистрируйтесь
-//                   </button>
-//                 </>
-//               )}
-//             </div>
-//           </div>
-
-//           {/* Правая часть - Приветствие */}
-//           <div
-//             className="lg:w-1/2 p-8 md:p-10 lg:p-12 flex flex-col justify-center text-white"
-//             style={{ backgroundColor: "#3E4F5F" }}
-//           >
-//             <h2 className="text-2xl md:text-3xl font-medium mb-6">
-//               {isRegister ? "Добро пожаловать!" : "С возвращением!"}
-//             </h2>
-//             <p className="text-gray-100 mb-10 leading-relaxed">
-//               {isRegister
-//                 ? "Создайте учетную запись и получите доступ ко всем функциям нашей платформы. Мы гарантируем безопасность ваших данных и круглосуточную поддержку."
-//                 : "Мы рады снова видеть вас. Получите доступ ко всем функциям вашего аккаунта и продолжайте с того места, где остановились."}
-//             </p>
-
-//             <ul className="space-y-6">
-//               <li className="flex items-start">
-//                 <div className="bg-white/20 w-7 h-7 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-//                   <FaShieldAlt className="text-white text-sm" />
-//                 </div>
-//                 <span>Безопасность данных гарантирована</span>
-//               </li>
-//               <li className="flex items-start">
-//                 <div className="bg-white/20 w-7 h-7 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-//                   <FaSyncAlt className="text-white text-sm" />
-//                 </div>
-//                 <span>Синхронизация на всех устройствах</span>
-//               </li>
-//               <li className="flex items-start">
-//                 <div className="bg-white/20 w-7 h-7 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-//                   <FaChartLine className="text-white text-sm" />
-//                 </div>
-//                 <span>Аналитика и персонализация</span>
-//               </li>
-//               <li className="flex items-start">
-//                 <div className="bg-white/20 w-7 h-7 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-//                   <FaHeadset className="text-white text-sm" />
-//                 </div>
-//                 <span>Поддержка клиентов 24/7</span>
-//               </li>
-//             </ul>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-C:\Users\Администратор\Desktop\order-manager\order-manager\app\api\register\route.ts
-
-import { NextResponse } from "next/server";
-import { getConnection } from "@/lib/db";
-import bcrypt from "bcryptjs";
-
-export async function POST(req: Request) {
-  try {
-    const {
-      email,
-      password,
-      code,
-      name,
-      inn,
-      kpp,
-      legal_address,
-      actual_address,
-    } = await req.json();
-
-    
-    if (!email || !password || !code || !name || !inn) {
-      return NextResponse.json(
-        { error: "Email, пароль, код, наименование и ИНН обязательны" },
-        { status: 400 }
-      );
-    }
-
-    const conn = await getConnection();
-
-   
-    const [exists] = await conn.execute(
-      "SELECT id FROM users WHERE email = ?",
-      [email]
-    );
-    if ((exists as any[]).length > 0) {
-      return NextResponse.json(
-        { error: "Пользователь с таким email уже существует" },
-        { status: 409 }
-      );
-    }
-
-   
-    const hashed = await bcrypt.hash(password, 10);
-
-   
-    await conn.execute(
-      `INSERT INTO users 
-        (email, password, code, name, inn, kpp, legal_address, actual_address) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        email,
-        hashed,
-        code,
-        name,
-        inn,
-        kpp ?? null,
-        legal_address ?? null,
-        actual_address ?? null,
-      ]
-    );
-
-    return NextResponse.json(
-      { message: "Регистрация успешна" },
-      { status: 201 }
-    );
-  } catch (err: any) {
-    console.error("Register error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-
-
-
-Sidebar++++++++++++++++++++++++++++++++++++++++++
-
-"use client";
-
-import { useEffect } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useUserStore } from "@/store/userStore";
-import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import { FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
-
-interface SidebarProps {
-  className?: string;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ className }) => {
-  const pathname = usePathname();
-  const user = useUserStore((state) => state.user);
-  const setUser = useUserStore((state) => state.setUser);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetchWithAuth("/api/checkAuth", { method: "GET" });
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-          if (data.accessToken) {
-            localStorage.setItem("access_token", data.accessToken);
-          }
-        } else {
-          setUser(null);
-          localStorage.removeItem("access_token");
-        }
-      } catch (err) {
-        console.error("Ошибка авторизации:", err);
-        setUser(null);
-      }
-    })();
-  }, [setUser]);
-
-  const handleLogout = async () => {
-    setUser(null);
-    localStorage.removeItem("user-storage");
-    localStorage.removeItem("access_token");
-    try {
-      await fetch("/api/logout", { method: "POST" });
-    } catch (err) {
-      console.error("Ошибка при удалении куки:", err);
-    }
-    window.location.href = "/";
+*******************SHOW CREATE TABLE freedb_oredrDB.specifications;**********************************
+
+
+'use client'
+import { useState } from "react";
+import { FaTrash } from "react-icons/fa";
+const Page = () => {
+  const [activePage, setActivePage] = useState("orders");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [orderItems, setOrderItems] = useState([
+    { id: 1, name: "Товар 1", quantity: 1, price: 10000, total: 10000 },
+    { id: 2, name: "Товар 2", quantity: 2, price: 5000, total: 10000 },
+  ]);
+
+  const handleAddItem = () => {
+    const newId =
+      orderItems.length > 0
+        ? Math.max(...orderItems.map((item) => item.id)) + 1
+        : 1;
+    setOrderItems([
+      ...orderItems,
+      { id: newId, name: `Товар ${newId}`, quantity: 1, price: 0, total: 0 },
+    ]);
   };
 
-  const linkClass = (href: string) => {
-    const isActive = pathname === href;
-    return [
-      "flex flex-col items-center justify-center md:flex-row md:items-center md:justify-start",
-      "px-4 py-3 text-gray-600 transition",
-      "hover:bg-gray-50 hover:text-gray-800",
-      "min-w-[100px]",
-      "border-b-4 md:border-b-0 md:border-l-4 border-transparent",
-      isActive
-        ? "border-b-[#3E4F5F] md:border-l-[#3E4F5F] bg-[#F8FAFC] md:bg-transparent"
-        : "",
-    ].join(" ");
+  const handleDeleteItem = (id: number) => {
+    if (orderItems.length > 1) {
+      setOrderItems(orderItems.filter((item) => item.id !== id));
+    }
   };
 
-  return (
-    <aside
-      className={`w-full md:w-72 bg-white border-b md:border-r border-gray-200 flex flex-col shadow-md ${
-        className ?? ""
-      }`}
-    >
-      <div className="flex items-center px-6 py-6 border-b border-gray-200">
-        <i className="fas fa-building text-2xl text-gray-600 mr-3"></i>
-        <h1 className="text-xl font-semibold text-gray-800">Личный кабинет</h1>
-      </div>
 
-      {user && (
-        <div className="flex items-center px-6 py-6 border-b border-gray-200">
-          <div className="w-14 h-14 rounded-full bg-linear-to-br from-[#3E4F5F] to-[#2d3a47] flex items-center justify-center text-white text-lg font-medium mr-4">
-            {user.name
-              ? (user.name[0] + (user.name[1] || ""))?.toUpperCase() || "??"
-              : "??"}
-          </div>
-          <div>
-            <h3 className="text-lg font-medium text-gray-800">{user.name}</h3>
-            <p className="text-sm text-gray-500">{user.email}</p>
-          </div>
-        </div>
-      )}
-
-      <nav className="py-4 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible justify-around">
-        <Link
-          href="/personal-account"
-          className={linkClass("/personal-account")}
-        >
-          <i className="fas fa-user w-6 mr-3"></i>
-          <span>Профиль</span>
-        </Link>
-        <Link href="/contracts" className={linkClass("/contracts")}>
-          <i className="fas fa-file-contract w-6 mr-3"></i>
-          <span>Договора</span>
-        </Link>
-        <Link href="/my-orders" className={linkClass("/my-orders")}>
-          <i className="fas fa-shopping-cart w-6 mr-3"></i>
-          <span>Заказы</span>
-        </Link>
-        <Link href="/price" className={linkClass("/price")}>
-          <i className="fas fa-tags w-6 mr-3"></i>
-          <span>Прайс-лист</span>
-        </Link>
-      </nav>
-
-      <div className="grow"></div>
-
-      <div className="px-6 py-6 border-t border-gray-200 mt-auto">
-        {user ? (
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center px-4 py-3 rounded-lg text-white transition-all duration-300 hover:opacity-90"
-            style={{
-              backgroundColor: "#3E4F5F",
-              boxShadow: "0 4px 12px rgba(62, 79, 95, 0.15)",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = "#2d3a47";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = "#3E4F5F";
-            }}
-          >
-            <FaSignOutAlt className="mr-3 transform rotate-180" />
-            <span className="font-medium">Выйти из аккаунта</span>
-          </button>
-        ) : (
-          <Link
-            href="/auth"
-            className="w-full flex items-center justify-center px-4 py-3 rounded-lg text-white transition-all duration-300 hover:opacity-90"
-            style={{
-              backgroundColor: "#3E4F5F",
-              boxShadow: "0 4px 12px rgba(62, 79, 95, 0.15)",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = "#2d3a47";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = "#3E4F5F";
-            }}
-          >
-            <FaSignInAlt className="mr-3" />
-            <span className="font-medium">Войти</span>
-          </Link>
-        )}
-      </div>
-    </aside>
-  );
-};
-
-export default Sidebar;
-
-Sidebar 2=================================================================================
-// "use client";
-
-// import { useEffect } from "react";
-// import Link from "next/link";
-// import { usePathname } from "next/navigation";
-// import { useUserStore } from "@/store/userStore";
-// import { fetchWithAuth } from "@/lib/fetchWithAuth";
-// import {
-//  FaClipboardList ,
-//   FaSignInAlt,
-//   FaSignOutAlt,
-//   FaUser,
-//   FaFileContract,
-//   FaShoppingCart,
-//   FaTags,
-// } from "react-icons/fa";
-
-// interface SidebarProps {
-//   className?: string;
-// }
-
-// const Sidebar: React.FC<SidebarProps> = ({ className }) => {
-//   const pathname = usePathname();
-//   const user = useUserStore((state) => state.user);
-//   const setUser = useUserStore((state) => state.setUser);
-
-//   useEffect(() => {
-//     (async () => {
-//       try {
-//         const res = await fetchWithAuth("/api/checkAuth", { method: "GET" });
-//         if (res.ok) {
-//           const data = await res.json();
-//           setUser(data.user);
-//           if (data.accessToken) {
-//             localStorage.setItem("access_token", data.accessToken);
-//           }
-//         } else {
-//           setUser(null);
-//           localStorage.removeItem("access_token");
-//         }
-//       } catch (err) {
-//         console.error("Ошибка авторизации:", err);
-//         setUser(null);
-//       }
-//     })();
-//   }, [setUser]);
-
-//   const handleLogout = async () => {
-//     setUser(null);
-//     localStorage.removeItem("user-storage");
-//     localStorage.removeItem("access_token");
-//     try {
-//       await fetch("/api/logout", { method: "POST" });
-//     } catch (err) {
-//       console.error("Ошибка при удалении куки:", err);
-//     }
-//     window.location.href = "/";
-//   };
-
-//   const linkClass = (href: string) => {
-//     const isActive = pathname === href;
-//     return [
-//       "flex flex-col items-center justify-center md:flex-row md:items-center md:justify-start",
-//       "px-4 py-3 text-gray-600 transition",
-//       "hover:bg-gray-50 hover:text-gray-800",
-//       "min-w-[100px]",
-//       "border-b-4 md:border-b-0 md:border-l-4 border-transparent",
-//       isActive
-//         ? "border-b-[#3E4F5F] md:border-l-[#3E4F5F] bg-[#F8FAFC] md:bg-transparent"
-//         : "",
-//     ].join(" ");
-//   };
-
-//   return (
-//     <aside
-//       className={`w-full md:w-72 bg-white border-b md:border-r border-gray-200 flex flex-col shadow-md ${
-//         className ?? ""
-//       }`}
-//     >
-//       <div className="flex items-center px-6 py-6 border-b border-gray-200">
-//         <FaClipboardList className="text-2xl text-gray-600 mr-3" />
-//         <h1 className="text-xl font-semibold text-gray-800">Личный кабинет</h1>
-//       </div>
-
-//       {user && (
-//         <div className="flex items-center px-6 py-6 border-b border-gray-200">
-//           <div className="w-14 h-14 rounded-full bg-linear-to-br from-[#3E4F5F] to-[#2d3a47] flex items-center justify-center text-white text-lg font-medium mr-4">
-//             {user.name
-//               ? (user.name[0] + (user.name[1] || ""))?.toUpperCase() || "??"
-//               : "??"}
-//           </div>
-//           <div>
-//             <h3 className="text-lg font-medium text-gray-800">{user.name}</h3>
-//             <p className="text-sm text-gray-500">{user.email}</p>
-//           </div>
-//         </div>
-//       )}
-
-//       <nav className="py-4 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible justify-around">
-//         <Link
-//           href="/personal-account"
-//           className={linkClass("/personal-account")}
-//         >
-//           <FaUser className="w-6 mr-3" />
-//           <span>Профиль</span>
-//         </Link>
-//         <Link href="/contracts" className={linkClass("/contracts")}>
-//           <FaFileContract className="w-6 mr-3" />
-//           <span>Договора</span>
-//         </Link>
-//         <Link href="/my-orders" className={linkClass("/my-orders")}>
-//           <FaShoppingCart className="w-6 mr-3" />
-//           <span>Заказы</span>
-//         </Link>
-//         <Link href="/price" className={linkClass("/price")}>
-//           <FaTags className="w-6 mr-3" />
-//           <span>Прайс-лист</span>
-//         </Link>
-//       </nav>
-
-//       <div className="grow"></div>
-
-//       <div className="px-6 py-6 border-t border-gray-200 mt-auto">
-//         {user ? (
-//           <button
-//             onClick={handleLogout}
-//             className="w-full flex items-center justify-center px-4 py-3 rounded-lg text-white transition-all duration-300 hover:opacity-90"
-//             style={{
-//               backgroundColor: "#3E4F5F",
-//               boxShadow: "0 4px 12px rgba(62, 79, 95, 0.15)",
-//             }}
-//             onMouseOver={(e) => {
-//               e.currentTarget.style.backgroundColor = "#2d3a47";
-//             }}
-//             onMouseOut={(e) => {
-//               e.currentTarget.style.backgroundColor = "#3E4F5F";
-//             }}
-//           >
-//             <FaSignOutAlt className="mr-3 transform rotate-180" />
-//             <span className="font-medium">Выйти из аккаунта</span>
-//           </button>
-//         ) : (
-//           <Link
-//             href="/auth"
-//             className="w-full flex items-center justify-center px-4 py-3 rounded-lg text-white transition-all duration-300 hover:opacity-90"
-//             style={{
-//               backgroundColor: "#3E4F5F",
-//               boxShadow: "0 4px 12px rgba(62, 79, 95, 0.15)",
-//             }}
-//             onMouseOver={(e) => {
-//               e.currentTarget.style.backgroundColor = "#2d3a47";
-//             }}
-//             onMouseOut={(e) => {
-//               e.currentTarget.style.backgroundColor = "#3E4F5F";
-//             }}
-//           >
-//             <FaSignInAlt className="mr-3" />
-//             <span className="font-medium">Войти</span>
-//           </Link>
-//         )}
-//       </div>
-//     </aside>
-//   );
-// };
-
-// export default Sidebar;
-
-
-C:\Users\Администратор\Desktop\order-manager\order-manager\app\personal-account\[id]\page.tsx
-
-"use client";
-import React from "react";
-import { useUserStore } from "@/store/userStore";
-import Sidebar from "../../components/sidebar/Sidebar";
-
-const PersonalAccountPage = () => {
-  const user = useUserStore((state) => state.user);
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-700">
-        <p className="text-lg">
-          Нет данных пользователя. Пожалуйста, авторизуйтесь.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100 text-gray-800">
-      {/* Main content */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        <header className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Профиль компании
-          </h2>
-        </header>
-
-        <section className="bg-white rounded-xl shadow-md border border-gray-200 p-8">
-          <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-6">
-            <h3 className="text-xl font-medium text-gray-800">
-              Данные компании
-            </h3>
-            <button className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition">
-              <i className="fas fa-save mr-2"></i> Сохранить изменения
-            </button>
-          </div>
-
-          {/* Form */}
-          <form className="space-y-6 max-w-2xl">
-            <div>
-              <label className="block mb-2 text-gray-700 font-medium">
-                Наименование компании
-              </label>
-              <input
-                type="text"
-                defaultValue={user.name ?? ""}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
-              />
-            </div>
-
-            <div>
-              <label className="block mb-2 text-gray-700 font-medium">
-                Юридический адрес компании
-              </label>
-              <input
-                type="text"
-                defaultValue={user.legal_address ?? ""}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block mb-2 text-gray-700 font-medium">
-                  ИНН
-                </label>
-                <input
-                  type="text"
-                  defaultValue={user.inn ?? ""}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                />
-              </div>
-              <div>
-                <label className="block mb-2 text-gray-700 font-medium">
-                  КПП
-                </label>
-                <input
-                  type="text"
-                  defaultValue={user.kpp ?? ""}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block mb-2 text-gray-700 font-medium">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  defaultValue={user.email}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                />
-              </div>
-              <div>
-                <label className="block mb-2 text-gray-700 font-medium">
-                  Контактный телефон
-                </label>
-                <input
-                  type="tel"
-                  defaultValue="+7 (999) 123-45-67"
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400"
-                />
-              </div>
-            </div>
-          </form>
-
-          {/* Security section */}
-          <div className="mt-10 pt-6 border-t border-gray-200">
-            <h4 className="text-lg font-medium text-gray-800 mb-4">
-              Безопасность
-            </h4>
-            <div className="flex flex-col md:flex-row gap-4">
-              <button className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition">
-                <i className="fas fa-key mr-2"></i> Сменить пароль
-              </button>
-              <button className="px-4 py-2 border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition">
-                <i className="fas fa-history mr-2"></i> История входов
-              </button>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
-  );
-};
-
-export default PersonalAccountPage;
-
-app/api/users/[id]/route.ts
-
-import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-import { getConnection } from "@/lib/db";
-import { PoolConnection } from "mysql2/promise";
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  let conn: PoolConnection | null = null;
-  try {
-    const { id } = await params;
-
-    let accessToken = request.cookies.get("access_token")?.value;
-    if (!accessToken) {
-      console.log("[API] No token found (cookie or header)");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    let payload;
-    try {
-      payload = jwt.verify(
-        accessToken,
-        process.env.NEXT_PUBLIC_JWT_SECRET!
-      ) as any;
-      console.log("[API] JWT payload:", payload);
-    } catch (error) {
-      console.log("[API] JWT verification failed:", error);
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    const userIdFromToken = String(payload.userId || payload.id);
-    const userIdFromPath = String(id);
-
-    console.log(
-      `[API] Comparing IDs - Token: ${userIdFromToken}, Path: ${userIdFromPath}`
-    );
-    console.log(`[API] User role: ${payload.role}`);
-
-    if (userIdFromPath !== userIdFromToken && payload.role !== "admin") {
-      console.log(`[API] Access denied - not own account and not admin`);
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    conn = await getConnection();
-    console.log(`[API] Querying user with ID: ${id}`);
-
-    const [rows] = await conn.execute(
-      "SELECT id, email, name, role, inn, kpp, legal_address, actual_address, code, access, create_time, active FROM users WHERE id = ?",
-      [id]
-    );
-
-    console.log(`[API] Query result: ${(rows as any[]).length} rows found`);
-
-    if ((rows as any[]).length === 0) {
-      console.log(`[API] User with ID ${id} not found in database`);
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const user = (rows as any[])[0];
-    console.log(`[API] User found:`, user);
-
-    return NextResponse.json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    console.error("[API] Error fetching user:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
-  } finally {
-    if (conn) conn.release();
-  }
-}
-
-
-
-C:\Users\Администратор\Desktop\order-manager\order-manager\app\users\page.tsx
-
-"use client";
-
-import { useState, useEffect } from "react";
-import {
-  FaUser,
-  FaEnvelope,
-  FaIdCard,
-  FaCheckCircle,
-  FaTimesCircle,
-  FaArrowRight,
-  FaSearch,
-  FaFilter,
-  FaEye,
-  FaUserTie,
-  FaCrown,
-  FaUserCircle,
-  FaCalendarAlt,
-  FaBuilding,
-  FaMapMarkerAlt,
-} from "react-icons/fa";
-import { useToast } from "@/app/ToastProvider";
-import ConfirmModal from "../components/ui/ConfirmModal";
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: "admin" | "client" | "manager";
-  inn: string;
-  kpp: string;
-  legal_address: string;
-  actual_address: string;
-  code: string;
-  access: number;
-  create_time: string;
-  active: boolean;
-  phone?: string | null;
-}
-
-
-type EditUserForm = {
-  name: string;
-  email: string;
-  role: "admin" | "client" | "manager";
-  inn: string;
-  kpp: string;
-  legal_address: string;
-  actual_address: string;
-  code: string;
-  access: number;
-  active: boolean;
-  phone: string;
-};
-
-
-const UsersPage = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const { notifyInfo, notifyError, notifySuccess } = useToast();
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<{
-    id: number;
-    active: boolean;
-    name: string;
-  } | null>(null);
-
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [editFormData, setEditFormData] = useState<EditUserForm>({
-    name: "",
-    email: "",
-    role: "client",
-    inn: "",
-    kpp: "",
-    legal_address: "",
-    actual_address: "",
-    code: "",
-    access: 0,
-    active: true,
-    phone: "",
-  });
-  const [editLoading, setEditLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch("/api/users", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUsers(data.users || []);
-        } else {
-          console.error("Ошибка загрузки пользователей");
-        }
-      } catch (error) {
-        console.error("Ошибка сети:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.inn.includes(searchTerm) ||
-      user.code.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesFilter =
-      filter === "all" ||
-      (filter === "active" && user.active) ||
-      (filter === "inactive" && !user.active) ||
-      (filter === "admin" && user.role === "admin") ||
-      (filter === "client" && user.role === "client") ||
-      (filter === "manager" && user.role === "manager");
-
-    return matchesSearch && matchesFilter;
-  });
-
-  const handleViewProfile = (userId: number) => {
-    window.location.href = `/personal-account/${userId}`;
-  };
-
-  const openConfirmModal = (
-    userId: number,
-    currentActive: boolean,
-    userName: string
+  const handleItemChange = (
+    id: number,
+    field: string,
+    value: string | number
   ) => {
-    setSelectedUser({ id: userId, active: currentActive, name: userName });
-    setModalOpen(true);
-  };
-
-  const handleToggleActive = async (userId: number, currentActive: boolean) => {
-    if (!selectedUser) return;
-    try {
-      const res = await fetch(`/api/users/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ active: !currentActive }),
-        credentials: "include",
-      });
-
-      if (res.ok) {
-        setUsers(
-          users.map((user) =>
-            user.id === userId ? { ...user, active: !currentActive } : user
-          )
-        );
-        notifyInfo(
-          `Пользователь успешно ${
-            currentActive ? "деактивирован" : "активирован"
-          }`
-        );
-      } else {
-        notifyError("Ошибка при обновлении статуса пользователя");
-      }
-    } catch (error) {
-      console.error("Ошибка обновления:", error);
-      notifyInfo("Произошла ошибка при обновлении статуса");
-    }
-  };
-
-  // handleToggleActive с откатом
-  /*
-  handleToggleActive
-// const handleToggleActive = async (userId: number, currentActive: boolean) => {
-//   if (!selectedUser) return;
-
-//   const prevUsers = [...users];
-
-//   setUsers(
-//     users.map((user) =>
-//       user.id === userId ? { ...user, active: !currentActive } : user
-//     )
-//   );
-
-//   try {
-//     const res = await fetch(`/api/users/${userId}`, {
-//       method: "PUT",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({ active: !currentActive }),
-//       credentials: "include",
-//     });
-
-//     if (res.ok) {
-//       notifyInfo(
-//         `Пользователь успешно ${
-//           currentActive ? "деактивирован" : "активирован"
-//         }`
-//       );
-//     } else {
-//       setUsers(prevUsers);
-//       notifyInfo("Ошибка при обновлении статуса пользователя");
-//     }
-//   } catch (error) {
-//     console.error("Ошибка обновления:", error);
-//     setUsers(prevUsers);
-//     notifyInfo("Произошла ошибка при обновлении статуса");
-//   }
-// };
-здесь реализован откат если сервер выдаст ошибку 
-*/
-
-
-const handleEditUser = (user: User) => {
-  setEditingUser(user);
-  setEditFormData({
-    name: user.name || "",
-    email: user.email || "",
-    role: user.role || "client",
-    inn: user.inn || "",
-    kpp: user.kpp || "",
-    legal_address: user.legal_address || "",
-    actual_address: user.actual_address || "",
-    code: user.code || "",
-    access: user.access || 0,
-    active: user.active,
-    phone: user.phone || "",
-  });
-  setIsEditModalOpen(true);
-};
-
-const handleEditFormChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-) => {
-  const { name, value, type } = e.target;
-
-  if (type === "checkbox") {
-    const checkbox = e.target as HTMLInputElement;
-    setEditFormData((prev) => ({
-      ...prev,
-      [name]: checkbox.checked,
-    }));
-  } else if (name === "access") {
-    setEditFormData((prev) => ({
-      ...prev,
-      [name]: parseInt(value) || 0,
-    }));
-  } else {
-    setEditFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }
-};
-const handleSaveUser = async () => {
-  if (!editingUser) return;
-
-  setEditLoading(true);
-
-  try {
-    const res = await fetch(`/api/users/${editingUser.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(editFormData),
-      credentials: "include",
-    });
-
-    if (res.ok) {
-      setUsers(
-        users.map((user) =>
-          user.id === editingUser.id ? { ...user, ...editFormData } : user
-        )
-      );
-
-      notifySuccess("Данные пользователя успешно обновлены");
-      setIsEditModalOpen(false);
-      setEditingUser(null);
-    } else {
-      const errorData = await res.json();
-      notifyError(
-        errorData.message || "Ошибка при обновлении данных пользователя"
-      );
-    }
-  } catch (error) {
-    console.error("Ошибка обновления:", error);
-    notifyError("Произошла ошибка при обновлении данных");
-  } finally {
-    setEditLoading(false);
-  }
-};
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "admin":
-        return <FaCrown className="text-red-500" />;
-      case "manager":
-        return <FaUserTie className="text-green-500" />;
-      case "client":
-        return <FaUserCircle className="text-blue-500" />;
-      default:
-        return <FaUser className="text-gray-500" />;
-    }
-  };
-
-  const getRoleText = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "Администратор";
-      case "manager":
-        return "Менеджер";
-      case "client":
-        return "Клиент";
-      default:
-        return role;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ru-RU");
-  };
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch("/api/users", {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+    setOrderItems(
+      orderItems.map((item) => {
+        if (item.id === id) {
+          const updatedItem = { ...item, [field]: value };
+          if (field === "quantity" || field === "price") {
+            updatedItem.total = updatedItem.quantity * updatedItem.price;
+          }
+          return updatedItem;
         }
-
-        const data = await res.json();
-
-        if (data && Array.isArray(data.users)) {
-          setUsers(data.users);
-        } else {
-          console.warn("Некорректный формат данных:", data);
-          setUsers([]);
-        }
-
-        setError(null);
-      } catch (error) {
-        console.error("Ошибка загрузки пользователей:", error);
-        setError(
-          "Не удалось загрузить пользователей. Проверьте подключение к сети."
-        );
-        setUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Загрузка пользователей...</p>
-        </div>
-      </div>
+        return item;
+      })
     );
-  }
+  };
+
+  const totalAmount = orderItems.reduce((sum, item) => sum + item.total, 0);
+
+  const orders = [
+    {
+      id: "#78901",
+      date: "20.05.2023",
+      amount: "25 000 ₽",
+      status: "Выполнен",
+      statusClass: "status-completed",
+    },
+    {
+      id: "#78900",
+      date: "15.05.2023",
+      amount: "18 500 ₽",
+      status: "Выполнен",
+      statusClass: "status-completed",
+    },
+    {
+      id: "#78899",
+      date: "10.05.2023",
+      amount: "32 000 ₽",
+      status: "В обработке",
+      statusClass: "status-processing",
+    },
+    {
+      id: "#78895",
+      date: "05.05.2023",
+      amount: "15 000 ₽",
+      status: "Отменен",
+      statusClass: "status-cancelled",
+    },
+    {
+      id: "#78890",
+      date: "28.04.2023",
+      amount: "42 000 ₽",
+      status: "Выполнен",
+      statusClass: "status-completed",
+    },
+  ];
+
+  
+  
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Заголовок страницы */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-medium text-gray-900">
-            Управление пользователями
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Просмотр и управление учетными записями пользователей
-          </p>
-        </div>
-
-        {/* Основная карточка */}
-        <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-          {/* Шапка с действиями */}
-          <div className="px-6 py-6 border-b border-gray-200">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <h2 className="text-2xl font-medium text-gray-900">
-                Список пользователей
-              </h2>
-              <button
-                className="px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium"
-                onClick={() => {
-                  // Здесь нужно добавить логику создания нового пользователя
-                  notifyInfo("Функция создания нового пользователя");
-                }}
-              >
-                + Добавить пользователя
-              </button>
-            </div>
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+      <div className="flex min-h-screen">
+        <div className="flex-1 p-8 overflow-auto">
+          {/* Заголовок */}
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-medium text-gray-800">Заказы</h2>
           </div>
-
-          {/* Панель поиска и фильтров */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Поиск */}
-              <div className="flex-1">
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Поиск по имени, email, ИНН или коду..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Фильтры */}
-              <div className="flex flex-wrap gap-3">
-                <div className="flex items-center gap-2">
-                  <FaFilter className="text-gray-400" />
-                  <select
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent bg-white"
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
+          {/* Контент страницы */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 min-h-[500px] p-8">
+            {activePage === "orders" && (
+              <div className="animate-fadeIn">
+                <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-200">
+                  <h3 className="text-2xl font-medium text-gray-800">Заказы</h3>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-6 py-3 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all flex items-center cursor-pointer"
                   >
-                    <option value="all">Все пользователи</option>
-                    <option value="active">Только активные</option>
-                    <option value="inactive">Только неактивные</option>
-                    <option value="admin">Только админы</option>
-                    <option value="manager">Только менеджеры</option>
-                    <option value="client">Только клиенты</option>
-                  </select>
+                    <span className="mr-2">+</span>
+                    Создать заказ
+                  </button>
                 </div>
-
-                <button
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium rounded-lg hover:bg-gray-100 transition-colors"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setFilter("all");
-                  }}
-                >
-                  Сбросить
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Таблица пользователей */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
-                    Пользователь
-                  </th>
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
-                    Контактная информация
-                  </th>
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
-                    Роль
-                  </th>
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
-                    Статус
-                  </th>
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
-                    Регистрация
-                  </th>
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
-                    Действия
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="py-4 px-6">
-                      <div className="flex items-center">
-                        <div className="bg-blue-50 p-2 rounded-lg mr-3">
-                          {getRoleIcon(user.role)}
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {user.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Код: {user.code}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="space-y-1">
-                        <div className="flex items-center">
-                          <FaEnvelope className="text-gray-400 mr-2 text-sm" />
-                          <span className="text-gray-700 text-sm">
-                            {user.email}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <FaIdCard className="text-gray-400 mr-2 text-sm" />
-                          <span className="text-gray-700 text-sm">
-                            ИНН: {user.inn}
-                          </span>
-                        </div>
-                        {user.kpp && (
-                          <div className="flex items-center">
-                            <FaIdCard className="text-gray-400 mr-2 text-sm" />
-                            <span className="text-gray-700 text-sm">
-                              КПП: {user.kpp}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="text-left p-4 text-gray-700 font-semibold">
+                          Номер заказа
+                        </th>
+                        <th className="text-left p-4 text-gray-700 font-semibold">
+                          Дата
+                        </th>
+                        <th className="text-left p-4 text-gray-700 font-semibold">
+                          Сумма
+                        </th>
+                        <th className="text-left p-4 text-gray-700 font-semibold">
+                          Статус
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.map((order, index) => (
+                        <tr
+                          key={index}
+                          className="border-b border-gray-100 hover:bg-gray-50"
+                        >
+                          <td className="p-4 font-medium">{order.id}</td>
+                          <td className="p-4">{order.date}</td>
+                          <td className="p-4 font-medium">{order.amount}</td>
+                          <td className="p-4">
+                            <span
+                              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                order.statusClass === "status-completed"
+                                  ? "bg-green-50 text-green-700"
+                                  : order.statusClass === "status-processing"
+                                  ? "bg-yellow-50 text-yellow-700"
+                                  : "bg-red-50 text-red-700"
+                              }`}
+                            >
+                              {order.status}
                             </span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            user.role === "admin"
-                              ? "bg-red-100 text-red-800"
-                              : user.role === "manager"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {getRoleIcon(user.role)}
-                          <span className="ml-1.5">
-                            {getRoleText(user.role)}
-                          </span>
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex flex-col gap-2">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            user.active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {user.active ? (
-                            <FaCheckCircle className="mr-1.5" />
-                          ) : (
-                            <FaTimesCircle className="mr-1.5" />
-                          )}
-                          {user.active ? "Активен" : "Не активен"}
-                        </span>
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            user.access === 1
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {user.access === 1 ? (
-                            <FaCheckCircle className="mr-1.5" />
-                          ) : (
-                            <FaTimesCircle className="mr-1.5" />
-                          )}
-                          {user.access === 1
-                            ? "Доступ разрешен"
-                            : "Доступ ограничен"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center">
-                        <FaCalendarAlt className="text-gray-400 mr-2" />
-                        <span className="text-gray-700">
-                          {formatDate(user.create_time)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex flex-col md:flex-row gap-2">
-                        <button
-                          onClick={() => handleViewProfile(user.id)}
-                          className="text-[#5a6c7d] hover:text-[#4a5a6a] font-medium flex items-center text-sm"
-                        >
-                          <FaEye className="mr-1.5" />
-                          Профиль
-                        </button>
-
-                        <button
-                          onClick={() =>
-                            openConfirmModal(user.id, user.active, user.name)
-                          }
-                          className={`text-sm font-medium flex items-center ${
-                            user.active
-                              ? "text-red-600 hover:text-red-800"
-                              : "text-green-600 hover:text-green-800"
-                          }`}
-                        >
-                          {user.active ? (
-                            <>
-                              <FaTimesCircle className="mr-1.5" />
-                              Деактивировать
-                            </>
-                          ) : (
-                            <>
-                              <FaCheckCircle className="mr-1.5" />
-                              Активировать
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          onClick={() => handleEditUser(user)}
-                          className="text-gray-600 hover:text-gray-800 font-medium flex items-center text-sm"
-                        >
-                          <FaArrowRight className="mr-1.5" />
-                          Редактировать
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Статистика и пагинация */}
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="text-gray-600 text-sm mb-4 md:mb-0">
-                Показано {filteredUsers.length} из {users.length} пользователей
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Назад
-                </button>
-                <span className="px-3 py-1 bg-[#5a6c7d] text-white rounded-lg">
-                  1
-                </span>
-                <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100">
-                  2
-                </button>
-                <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100">
-                  Вперед
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Статистика */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Всего пользователей</p>
-                <p className="text-3xl font-semibold text-gray-900 mt-1">
-                  {users.length}
-                </p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <FaUser className="text-blue-600 text-2xl" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Активные</p>
-                <p className="text-3xl font-semibold text-gray-900 mt-1">
-                  {users.filter((u) => u.active).length}
-                </p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <FaCheckCircle className="text-green-600 text-2xl" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Администраторы</p>
-                <p className="text-3xl font-semibold text-gray-900 mt-1">
-                  {users.filter((u) => u.role === "admin").length}
-                </p>
-              </div>
-              <div className="bg-red-100 p-3 rounded-lg">
-                <FaCrown className="text-red-600 text-2xl" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm">Клиенты</p>
-                <p className="text-3xl font-semibold text-gray-900 mt-1">
-                  {users.filter((u) => u.role === "client").length}
-                </p>
-              </div>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <FaUserCircle className="text-purple-600 text-2xl" />
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
-      <ConfirmModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setSelectedUser(null);
-        }}
-        onConfirm={() => {
-          if (selectedUser) {
-            handleToggleActive(selectedUser.id, selectedUser.active);
-          }
-        }}
-        message={
-          selectedUser
-            ? `Вы уверены, что хотите ${
-                selectedUser.active ? "деактивировать" : "активировать"
-              } пользователя "${selectedUser.name}"?`
-            : ""
-        }
-        confirmText={selectedUser?.active ? "Деактивировать" : "Активировать"}
-        confirmColor={selectedUser?.active ? "red" : "green"}
-      />
-
-      {/* Модальное окно редактирования пользователя */}
-      {isEditModalOpen && editingUser && (
-        <div className="fixed inset-0 bg-white/60 backdrop:blur  flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            {/* Заголовок модального окна */}
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-medium text-gray-900">
-                  Редактирование пользователя
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsEditModalOpen(false);
-                    setEditingUser(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600 text-2xl"
-                >
-                  &times;
-                </button>
-              </div>
-              <p className="text-gray-600 mt-1">
-                ID: {editingUser.id} • {editingUser.email}
-              </p>
+      {/* Модальное окно создания заказа */}
+      {isModalOpen && (
+        <div className="fixed inset-0  bg-black/40 bg-opacity-40 backdrop-blur-sm z-40 flex items-center justify-center">
+          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-2xl font-medium text-gray-800">
+                Создание нового заказа
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+              >
+                <span>×</span>
+              </button>
             </div>
-
-            {/* Форма редактирования */}
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Основная информация */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                    <FaUser className="mr-2" />
-                    Основная информация
-                  </h3>
-
+              <div className="mb-8">
+                <h4 className="text-lg font-medium text-gray-800 mb-4">
+                  Информация о заказе
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Имя пользователя
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={editFormData.name}
-                      onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={editFormData.email}
-                      onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Телефон
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={editFormData.phone}
-                      onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
-                      placeholder="+7 (XXX) XXX-XX-XX"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Роль
-                    </label>
-                    <select
-                      name="role"
-                      value={editFormData.role}
-                      onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
-                    >
-                      <option value="client">Клиент</option>
-                      <option value="manager">Менеджер</option>
-                      <option value="admin">Администратор</option>
+                    <label className="block mb-2 text-gray-700">Договор</label>
+                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                      <option>ДГ-2023-001 - ООО "Ромашка"</option>
+                      <option>ДГ-2023-002 - ИП Иванов И.И.</option>
                     </select>
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Код пользователя
+                    <label className="block mb-2 text-gray-700">
+                      Дата заказа
                     </label>
                     <input
-                      type="text"
-                      name="code"
-                      value={editFormData.code}
-                      onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                      type="date"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      placeholder="Выберите дату"
                     />
-                  </div>
-                </div>
-
-                {/* Статус и доступ */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                    <FaCheckCircle className="mr-2" />
-                    Статус и доступ
-                  </h3>
-
-                  <div className="flex items-center space-x-4">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        name="active"
-                        checked={editFormData.active}
-                        onChange={handleEditFormChange}
-                        className="h-4 w-4 text-[#5a6c7d] focus:ring-[#5a6c7d] border-gray-300 rounded"
-                      />
-                      <span className="ml-2 text-gray-700">Активен</span>
-                    </label>
-
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        name="access"
-                        checked={editFormData.access === 1}
-                        onChange={(e) => {
-                          setEditFormData((prev) => ({
-                            ...prev,
-                            access: e.target.checked ? 1 : 0,
-                          }));
-                        }}
-                        className="h-4 w-4 text-[#5a6c7d] focus:ring-[#5a6c7d] border-gray-300 rounded"
-                      />
-                      <span className="ml-2 text-gray-700">
-                        Доступ разрешен
-                      </span>
-                    </label>
-                  </div>
-
-                  {/* Реквизиты */}
-                  <div className="mt-6">
-                    <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                      <FaBuilding className="mr-2" />
-                      Реквизиты компании
-                    </h3>
-
-                    <div className="mt-3 space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          ИНН
-                        </label>
-                        <input
-                          type="text"
-                          name="inn"
-                          value={editFormData.inn}
-                          onChange={handleEditFormChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          КПП
-                        </label>
-                        <input
-                          type="text"
-                          name="kpp"
-                          value={editFormData.kpp}
-                          onChange={handleEditFormChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Адреса */}
-                <div className="md:col-span-2 space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                    <FaMapMarkerAlt className="mr-2" />
-                    Адреса
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Юридический адрес
-                      </label>
-                      <input
-                        type="text"
-                        name="legal_address"
-                        value={editFormData.legal_address}
-                        onChange={handleEditFormChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Фактический адрес
-                      </label>
-                      <input
-                        type="text"
-                        name="actual_address"
-                        value={editFormData.actual_address}
-                        onChange={handleEditFormChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Кнопки действий */}
-              <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-200">
+              <div>
+                <h4 className="text-lg font-medium text-gray-800 mb-4">
+                  Позиции заказа
+                </h4>
+                <div className="overflow-x-auto mb-6">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="p-3 text-left">Номенклатура</th>
+                        <th className="p-3 text-left">Количество</th>
+                        <th className="p-3 text-left">Цена</th>
+                        <th className="p-3 text-left">Сумма</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orderItems.map((item) => (
+                        <tr key={item.id} className="border-b">
+                          <td className="p-3">
+                            <input
+                              type="text"
+                              value={item.name}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "name",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-3 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "quantity",
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
+                              className="w-full px-3 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input
+                              type="number"
+                              value={item.price}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.id,
+                                  "price",
+                                  parseInt(e.target.value) || 0
+                                )
+                              }
+                              className="w-full px-3 py-1 border rounded"
+                            />
+                          </td>
+                          <td className="p-3 font-medium">
+                            {item.total.toLocaleString()} ₽
+                          </td>
+                          <td className="p-3">
+                            <button
+                              onClick={() => handleDeleteItem(item.id)}
+                              disabled={orderItems.length <= 1}
+                              className={`p-2 rounded-lg transition-all ${
+                                orderItems.length <= 1
+                                  ? "opacity-30 cursor-not-allowed"
+                                  : "text-red-500 hover:text-red-700 hover:bg-red-50"
+                              }`}
+                              title={
+                                orderItems.length <= 1
+                                  ? "Должен остаться хотя бы один товар"
+                                  : "Удалить строку"
+                              }
+                            >
+                              <FaTrash className="w-5 h-5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
                 <button
-                  onClick={() => {
-                    setIsEditModalOpen(false);
-                    setEditingUser(null);
-                  }}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  disabled={editLoading}
+                  onClick={handleAddItem}
+                  className="px-5 py-2 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all"
+                >
+                  + Добавить товар
+                </button>
+
+                <div className="mt-6 pt-6 border-t text-right">
+                  <div className="text-xl font-semibold">
+                    Итого: {totalAmount.toLocaleString()} ₽
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
                 >
                   Отмена
                 </button>
                 <button
-                  onClick={handleSaveUser}
-                  disabled={editLoading}
-                  className="px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-6 py-3 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all"
                 >
-                  {editLoading ? (
-                    <span className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Сохранение...
-                    </span>
-                  ) : (
-                    "Сохранить изменения"
-                  )}
+                  Создать заказ
                 </button>
               </div>
             </div>
@@ -2631,8 +326,4 @@ const handleSaveUser = async () => {
   );
 };
 
-
-export default UsersPage;
-
-
-
+export default Page;

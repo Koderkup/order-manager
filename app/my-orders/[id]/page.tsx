@@ -1,13 +1,121 @@
-'use client'
-import { useState } from "react";
-import { FaTrash } from "react-icons/fa";
-const Page = () => {
+"use client";
+import { useState, useEffect, ReactNode } from "react";
+import { FaTrash, FaEdit, FaPlus } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/userStore";
+interface Order {
+  id: number;
+  number: string;
+  order_date: string;
+  status: "Выполнен" | "В обработке" | "Отменен";
+  client_id: number;
+  contract_id: number;
+  specification_id: number;
+  amount: string;
+  contract_number?: string;
+  client_name?: string;
+}
+
+interface Contract {
+  id: number;
+  code: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  amount: string;
+  active: number;
+  client_id?: number;
+}
+interface OrderItem {
+  id: number;
+  name: string;
+  quantity: number;
+  price: number;
+  total: number;
+}
+
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+const Page = ({ params }: PageProps) => {
+  const router = useRouter();
+const user = useUserStore((state) => state.user);
   const [activePage, setActivePage] = useState("orders");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [orderItems, setOrderItems] = useState([
+  const [isLoading, setIsLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [contracts, setContracts] = useState<
+    Array<{
+      name: ReactNode;
+      code: ReactNode; id: number; number: string; client_name: string 
+}>
+  >([]);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([
     { id: 1, name: "Товар 1", quantity: 1, price: 10000, total: 10000 },
     { id: 2, name: "Товар 2", quantity: 2, price: 5000, total: 10000 },
   ]);
+
+
+  const [newOrder, setNewOrder] = useState({
+    contract_id: "",
+    order_date: new Date().toISOString().split("T")[0],
+  });
+
+  const fetchOrders = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/my-orders/${user?.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setOrders(data.orders);
+        } else {
+          console.error("Error fetching orders:", data.error);
+        }
+      } else {
+        console.error("Failed to fetch orders:", response.status);
+      }
+    } catch (error) {
+      console.error("Ошибка при загрузке заказов:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchContracts = async () => {
+    try {
+      if (!user?.id) return;
+
+      const response = await fetch(`/api/contracts/${user?.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Contracts API response:", data);
+
+        if (data.success && Array.isArray(data.contracts)) {
+          setContracts(data.contracts);
+        } else {
+          console.error("Unexpected contracts data format:", data);
+          setContracts([]);
+        }
+      } else {
+        console.error("Failed to fetch contracts:", response.status);
+        setContracts([]);
+      }
+    } catch (error) {
+      console.error("Ошибка при загрузке договоров:", error);
+      setContracts([]);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchOrders();
+      fetchContracts();
+    }
+  }, [user?.id]);
 
   const handleAddItem = () => {
     const newId =
@@ -25,7 +133,6 @@ const Page = () => {
       setOrderItems(orderItems.filter((item) => item.id !== id));
     }
   };
-
 
   const handleItemChange = (
     id: number,
@@ -46,48 +153,71 @@ const Page = () => {
     );
   };
 
+  const handleCreateOrder = async () => {
+    try {
+      const totalAmount = orderItems.reduce((sum, item) => sum + item.total, 0);
+      const orderData = {
+        client_id: user?.id,
+        contract_id: parseInt(newOrder.contract_id),
+        order_date: newOrder.order_date,
+        amount: totalAmount,
+        status: "В обработке" as const,
+        specification_id: 1,
+      };
+
+      const response = await fetch(`/api/my-orders/${user?.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(orderData),
+      });
+
+      if (response.ok) {
+        setIsModalOpen(false);
+        fetchOrders(); 
+        setNewOrder({
+          contract_id: "",
+          order_date: new Date().toISOString().split("T")[0],
+        });
+        setOrderItems([
+          { id: 1, name: "Товар 1", quantity: 1, price: 10000, total: 10000 },
+          { id: 2, name: "Товар 2", quantity: 2, price: 5000, total: 10000 },
+        ]);
+      }
+    } catch (error) {
+      console.error("Ошибка при создании заказа:", error);
+    }
+  };
+
+  const handleEditOrder = (orderId: number) => {
+    router.push(`/edit-order/${orderId}`);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ru-RU");
+  };
+
+  const formatCurrency = (amount: string) => {
+    return `${parseFloat(amount).toLocaleString("ru-RU")} ₽`;
+  };
+
+  const getStatusClass = (status: string) => {
+    switch (status) {
+      case "Выполнен":
+        return "bg-green-50 text-green-700";
+      case "В обработке":
+        return "bg-yellow-50 text-yellow-700";
+      case "Отменен":
+        return "bg-red-50 text-red-700";
+      default:
+        return "bg-gray-50 text-gray-700";
+    }
+  };
+
   const totalAmount = orderItems.reduce((sum, item) => sum + item.total, 0);
-
-  const orders = [
-    {
-      id: "#78901",
-      date: "20.05.2023",
-      amount: "25 000 ₽",
-      status: "Выполнен",
-      statusClass: "status-completed",
-    },
-    {
-      id: "#78900",
-      date: "15.05.2023",
-      amount: "18 500 ₽",
-      status: "Выполнен",
-      statusClass: "status-completed",
-    },
-    {
-      id: "#78899",
-      date: "10.05.2023",
-      amount: "32 000 ₽",
-      status: "В обработке",
-      statusClass: "status-processing",
-    },
-    {
-      id: "#78895",
-      date: "05.05.2023",
-      amount: "15 000 ₽",
-      status: "Отменен",
-      statusClass: "status-cancelled",
-    },
-    {
-      id: "#78890",
-      date: "28.04.2023",
-      amount: "42 000 ₽",
-      status: "Выполнен",
-      statusClass: "status-completed",
-    },
-  ];
-
-  
-  
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
@@ -95,75 +225,123 @@ const Page = () => {
         <div className="flex-1 p-8 overflow-auto">
           {/* Заголовок */}
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-medium text-gray-800">Заказы</h2>
+            <h2 className="text-3xl font-medium text-gray-800">
+              Заказы клиента #{user?.id}
+            </h2>
           </div>
+
           {/* Контент страницы */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 min-h-[500px] p-8">
             {activePage === "orders" && (
               <div className="animate-fadeIn">
                 <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-200">
-                  <h3 className="text-2xl font-medium text-gray-800">Заказы</h3>
+                  <h3 className="text-2xl font-medium text-gray-800">
+                    Список заказов
+                  </h3>
                   <button
                     onClick={() => setIsModalOpen(true)}
                     className="px-6 py-3 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all flex items-center cursor-pointer"
                   >
-                    <span className="mr-2">+</span>
+                    <FaPlus className="mr-2" />
                     Создать заказ
                   </button>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="text-left p-4 text-gray-700 font-semibold">
-                          Номер заказа
-                        </th>
-                        <th className="text-left p-4 text-gray-700 font-semibold">
-                          Дата
-                        </th>
-                        <th className="text-left p-4 text-gray-700 font-semibold">
-                          Сумма
-                        </th>
-                        <th className="text-left p-4 text-gray-700 font-semibold">
-                          Статус
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orders.map((order, index) => (
-                        <tr
-                          key={index}
-                          className="border-b border-gray-100 hover:bg-gray-50"
-                        >
-                          <td className="p-4 font-medium">{order.id}</td>
-                          <td className="p-4">{order.date}</td>
-                          <td className="p-4 font-medium">{order.amount}</td>
-                          <td className="p-4">
-                            <span
-                              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                order.statusClass === "status-completed"
-                                  ? "bg-green-50 text-green-700"
-                                  : order.statusClass === "status-processing"
-                                  ? "bg-yellow-50 text-yellow-700"
-                                  : "bg-red-50 text-red-700"
-                              }`}
-                            >
-                              {order.status}
-                            </span>
-                          </td>
+
+                {isLoading ? (
+                  <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3E4F5F]"></div>
+                  </div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-lg">
+                      У клиента пока нет заказов
+                    </p>
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="mt-4 px-6 py-3 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all inline-flex items-center"
+                    >
+                      <FaPlus className="mr-2" />
+                      Создать первый заказ
+                    </button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="text-left p-4 text-gray-700 font-semibold">
+                            Номер заказа
+                          </th>
+                          <th className="text-left p-4 text-gray-700 font-semibold">
+                            Дата
+                          </th>
+                          <th className="text-left p-4 text-gray-700 font-semibold">
+                            Договор
+                          </th>
+                          <th className="text-left p-4 text-gray-700 font-semibold">
+                            Сумма
+                          </th>
+                          <th className="text-left p-4 text-gray-700 font-semibold">
+                            Статус
+                          </th>
+                          <th className="text-left p-4 text-gray-700 font-semibold">
+                            Действия
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {orders.map((order: any) => (
+                          <tr
+                            key={order.id}
+                            className="border-b border-gray-100 hover:bg-gray-50"
+                          >
+                            <td className="p-4 font-medium">#{order.number}</td>
+                            <td className="p-4">
+                              {formatDate(order.order_date)}
+                            </td>
+                            <td className="p-4">
+                              {order.contract_code ||
+                                `Договор #${order.contract_id}`}
+                              {order.contract_name &&
+                                ` - ${order.contract_name}`}
+                            </td>
+                            <td className="p-4 font-medium">
+                              {formatCurrency(order.amount)}
+                            </td>
+                            <td className="p-4">
+                              <span
+                                className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusClass(
+                                  order.status
+                                )}`}
+                              >
+                                {order.status}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <button
+                                onClick={() => handleEditOrder(order.id)}
+                                className="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all flex items-center"
+                                title="Редактировать заказ"
+                              >
+                                <FaEdit className="w-4 h-4" />
+                                <span className="ml-2">Редактировать</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
+
       {/* Модальное окно создания заказа */}
       {isModalOpen && (
-        <div className="fixed inset-0  bg-black/40 bg-opacity-40 backdrop-blur-sm z-40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/40 bg-opacity-40 backdrop-blur-sm z-40 flex items-center justify-center">
           <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-2xl font-medium text-gray-800">
@@ -184,9 +362,22 @@ const Page = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block mb-2 text-gray-700">Договор</label>
-                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                      <option>ДГ-2023-001 - ООО "Ромашка"</option>
-                      <option>ДГ-2023-002 - ИП Иванов И.И.</option>
+                    <select
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      value={newOrder.contract_id}
+                      onChange={(e) =>
+                        setNewOrder({
+                          ...newOrder,
+                          contract_id: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Выберите договор</option>
+                      {contracts.map((contract) => (
+                        <option key={contract.id} value={contract.id}>
+                          {contract.code} - {contract.name}{" "}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -196,7 +387,10 @@ const Page = () => {
                     <input
                       type="date"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                      placeholder="Выберите дату"
+                      value={newOrder.order_date}
+                      onChange={(e) =>
+                        setNewOrder({ ...newOrder, order_date: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -214,6 +408,7 @@ const Page = () => {
                         <th className="p-3 text-left">Количество</th>
                         <th className="p-3 text-left">Цена</th>
                         <th className="p-3 text-left">Сумма</th>
+                        <th className="p-3 text-left">Действия</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -289,9 +484,10 @@ const Page = () => {
                 </div>
                 <button
                   onClick={handleAddItem}
-                  className="px-5 py-2 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all"
+                  className="px-5 py-2 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all flex items-center"
                 >
-                  + Добавить товар
+                  <FaPlus className="mr-2" />
+                  Добавить товар
                 </button>
 
                 <div className="mt-6 pt-6 border-t text-right">
@@ -309,9 +505,15 @@ const Page = () => {
                   Отмена
                 </button>
                 <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-3 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all"
+                  onClick={handleCreateOrder}
+                  disabled={!newOrder.contract_id}
+                  className={`px-6 py-3 text-white rounded-lg transition-all flex items-center ${
+                    !newOrder.contract_id
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#3E4F5F] hover:bg-[#3E4F5F]/80"
+                  }`}
                 >
+                  <FaPlus className="mr-2" />
                   Создать заказ
                 </button>
               </div>
