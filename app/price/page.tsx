@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUserStore } from "@/store/userStore";
-
+import { useRouter } from "next/navigation";
 interface Contract {
   id: number;
   code: string;
@@ -30,7 +30,18 @@ const PricePage = () => {
   const [priceItems, setPriceItems] = useState<PriceItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+const router = useRouter();
 
+useEffect(() => {
+  if (user) {
+    if (user.role !== "admin") {
+      router.push(`/price/${user.id}`);
+      return; 
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientIdFromUrl = urlParams.get("clientId");
+  }
+}, [user, router]);
 
   const fetchUserContracts = async () => {
     try {

@@ -32,7 +32,7 @@ const protectedRoutes = {
 };
 
 export async function proxy(request: NextRequest) {
-  const accessToken = request.cookies.get("access_token")?.value;
+  const refreshToken = request.cookies.get("refresh_token")?.value;
   const pathname = request.nextUrl.pathname;
 
  
@@ -50,7 +50,7 @@ export async function proxy(request: NextRequest) {
   }
 
   
-  if (!accessToken) {
+  if (!refreshToken) {
     return NextResponse.redirect(new URL("/auth", request.url));
   }
 
@@ -59,7 +59,7 @@ export async function proxy(request: NextRequest) {
   
   try {
     payload = jwt.verify(
-      accessToken,
+      refreshToken,
       process.env.NEXT_PUBLIC_JWT_SECRET!
     ) as any;
   } catch (error) {
@@ -133,7 +133,7 @@ export async function proxy(request: NextRequest) {
       pathname.startsWith(endpoint)
     );
 
-    if (!isPublicApi && !accessToken) {
+    if (!isPublicApi && !refreshToken) {
       return NextResponse.redirect(new URL("/auth", request.url));
     }
   }
