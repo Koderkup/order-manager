@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   FaLock,
@@ -10,7 +10,7 @@ import {
   FaTimes,
 } from "react-icons/fa";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -134,7 +134,6 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-soft border border-gray-200 overflow-hidden">
-        {/* Заголовок */}
         <div
           className="p-6 text-white text-center"
           style={{ backgroundColor: "#3E4F5F" }}
@@ -148,7 +147,6 @@ export default function ResetPasswordPage() {
         </div>
 
         <div className="p-6 md:p-8">
-    
           {message.text && (
             <div
               className={`p-4 rounded-xl mb-6 flex items-center ${
@@ -269,5 +267,22 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Загрузка страницы...</p>
+          </div>
+        </div>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
