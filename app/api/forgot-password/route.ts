@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
       port: parseInt(process.env.SMTP_PORT || "465"),
       secure: true,
       auth: {
-        user: process.env.SMTP_USER || "mirastom2023@mail.ru",
-        pass: process.env.SMTP_PASS || "2dJujpjXUDyA0YXd9fwi",
+        user: process.env.SMTP_USER || "p.k1978@mail.ru",
+        pass: process.env.SMTP_PASS || "EZEcHSfc1Wj3n0MJAqGZ",
       },
       tls: {
         rejectUnauthorized: false,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     });
 
     const mailOptions = {
-      from: process.env.SMTP_FROM || "mirastom2023@mail.ru",
+      from: process.env.SMTP_FROM || "p.k1978@mail.ru",
       to: email,
       subject: "Восстановление пароля",
       html: `

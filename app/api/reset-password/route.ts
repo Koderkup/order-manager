@@ -67,8 +67,11 @@ export async function GET(request: NextRequest) {
 
     if (!token) {
       return NextResponse.json(
-        { error: "Токен не предоставлен" },
-        { status: 400 }
+        {
+          valid: false, 
+          error: "Токен не предоставлен",
+        },
+        { status: 200 } 
       );
     }
 
@@ -81,8 +84,11 @@ export async function GET(request: NextRequest) {
     const users = rows as any[];
     if (users.length === 0) {
       return NextResponse.json(
-        { error: "Неверный или просроченный токен" },
-        { status: 400 }
+        {
+          valid: false, 
+          error: "Неверный или просроченный токен",
+        },
+        { status: 200 } 
       );
     }
 
@@ -98,6 +104,12 @@ export async function GET(request: NextRequest) {
     );
   } catch (err: any) {
     console.error("Token validation error:", err);
-    return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
+    return NextResponse.json(
+      {
+        valid: false, 
+        error: "Ошибка проверки токена",
+      },
+      { status: 200 }
+    );
   }
 }
