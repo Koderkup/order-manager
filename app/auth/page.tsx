@@ -59,7 +59,7 @@ export default function AuthPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // 
+   
   
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
