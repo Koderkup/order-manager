@@ -16,12 +16,19 @@ import {
   FaUserPlus,
   FaPhone,
   FaTimes,
+  FaHistory,
+  FaTrash,
 } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaXTwitter, FaFacebook } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
-
+import { useToast } from "../ToastProvider";
+interface RememberedCredentials {
+  email: string;
+  password: string;
+  remember: boolean;
+}
 export default function AuthPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -30,9 +37,12 @@ export default function AuthPage() {
   const setUser = useUserStore((state) => state.setUser);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
-  const [forgotPasswordMessage, setForgotPasswordMessage] = useState({ text: "", type: "" });
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState({
+    text: "",
+    type: "",
+  });
   const [isSendingReset, setIsSendingReset] = useState(false);
-  
+  const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -47,6 +57,58 @@ export default function AuthPage() {
 
   const [message, setMessage] = useState({ text: "", type: "" });
   const [isLoading, setIsLoading] = useState(false);
+  const STORAGE_KEY = "remembered_auth_credentials";
+  const { notifyError } = useToast();
+  const loadSavedCredentials = () => {
+    try {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        const parsedData: RememberedCredentials = JSON.parse(savedData);
+        if (parsedData.remember) {
+          setFormData((prev) => ({
+            ...prev,
+            email: parsedData.email,
+            password: parsedData.password,
+          }));
+          setRememberMe(true);
+        }
+      }
+    } catch (error) {
+      notifyError(`Ошибка при сохранении данных в localStorage:, ${error}`);
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  };
+
+  const saveCredentials = (
+    email: string,
+    password: string,
+    remember: boolean
+  ) => {
+    try {
+      if (remember) {
+        const credentials: RememberedCredentials = {
+          email,
+          password,
+          remember: true,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(credentials));
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch (error) {
+      notifyError(`Ошибка при сохранении данных в localStorage:, ${error}`);
+    }
+  };
+
+  const clearSavedCredentials = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setFormData((prev) => ({
+      ...prev,
+      email: "",
+      password: "",
+    }));
+    setRememberMe(false);
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -55,53 +117,51 @@ export default function AuthPage() {
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
-
+    loadSavedCredentials();
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-   
-  
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
 
-      if (name === "phone") {
-        let formattedValue = value.replace(/\D/g, ""); 
+    if (name === "phone") {
+      let formattedValue = value.replace(/\D/g, "");
 
-        if (formattedValue.length > 0) {
-          if (!formattedValue.startsWith("7")) {
-            formattedValue = "7" + formattedValue;
-          }
+      if (formattedValue.length > 0) {
+        if (!formattedValue.startsWith("7")) {
+          formattedValue = "7" + formattedValue;
+        }
 
-          let formattedPhone = "+7 ";
+        let formattedPhone = "+7 ";
 
-          if (formattedValue.length > 1) {
-            const part1 = formattedValue.substring(1, 4);
-            if (part1) formattedPhone += `(${part1}`;
+        if (formattedValue.length > 1) {
+          const part1 = formattedValue.substring(1, 4);
+          if (part1) formattedPhone += `(${part1}`;
 
-            if (formattedValue.length > 4) {
-              const part2 = formattedValue.substring(4, 7);
-              if (part2) formattedPhone += `) ${part2}`;
+          if (formattedValue.length > 4) {
+            const part2 = formattedValue.substring(4, 7);
+            if (part2) formattedPhone += `) ${part2}`;
 
-              if (formattedValue.length > 7) {
-                const part3 = formattedValue.substring(7, 9);
-                if (part3) formattedPhone += `-${part3}`;
+            if (formattedValue.length > 7) {
+              const part3 = formattedValue.substring(7, 9);
+              if (part3) formattedPhone += `-${part3}`;
 
-                if (formattedValue.length > 9) {
-                  const part4 = formattedValue.substring(9, 11);
-                  if (part4) formattedPhone += `-${part4}`;
-                }
+              if (formattedValue.length > 9) {
+                const part4 = formattedValue.substring(9, 11);
+                if (part4) formattedPhone += `-${part4}`;
               }
             }
           }
-
-          setFormData({ ...formData, [name]: formattedPhone });
-        } else {
-          setFormData({ ...formData, [name]: "" });
         }
+
+        setFormData({ ...formData, [name]: formattedPhone });
       } else {
-        setFormData({ ...formData, [name]: value });
+        setFormData({ ...formData, [name]: "" });
       }
-    };
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,6 +212,7 @@ export default function AuthPage() {
         if (res.ok) {
           setMessage({ text: "Авторизация успешна!", type: "success" });
           setUser(data.user);
+          saveCredentials(formData.email, formData.password, rememberMe);
           setTimeout(() => {
             router.push(`/personal-account/${data.user.id}`);
           }, 1500);
@@ -180,13 +241,13 @@ export default function AuthPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotPasswordEmail }),
       });
-      
+
       const data = await res.json();
-      
+
       if (res.ok) {
-        setForgotPasswordMessage({ 
-          text: "Инструкции по восстановлению пароля отправлены на ваш email!", 
-          type: "success" 
+        setForgotPasswordMessage({
+          text: "Инструкции по восстановлению пароля отправлены на ваш email!",
+          type: "success",
         });
         setTimeout(() => {
           setShowForgotPasswordModal(false);
@@ -194,15 +255,15 @@ export default function AuthPage() {
           setForgotPasswordMessage({ text: "", type: "" });
         }, 2000);
       } else {
-        setForgotPasswordMessage({ 
-          text: data.error || "Произошла ошибка при отправке", 
-          type: "error" 
+        setForgotPasswordMessage({
+          text: data.error || "Произошла ошибка при отправке",
+          type: "error",
         });
       }
     } catch (err: any) {
-      setForgotPasswordMessage({ 
-        text: "Ошибка: " + err.message, 
-        type: "error" 
+      setForgotPasswordMessage({
+        text: "Ошибка: " + err.message,
+        type: "error",
       });
     } finally {
       setIsSendingReset(false);
@@ -264,7 +325,6 @@ export default function AuthPage() {
           )}
 
           <div className={`flex ${isMobile ? "flex-col" : "flex-row"}`}>
-            {/* Левая часть - Форма */}
             <div
               className={`${
                 isMobile ? "w-full" : "lg:w-1/2"
@@ -293,7 +353,6 @@ export default function AuthPage() {
                 </>
               )}
 
-              {/* На мобильном заголовок и описание компактнее */}
               {isMobile && (
                 <>
                   <h2 className="text-2xl font-medium text-gray-900 mb-2">
@@ -307,7 +366,6 @@ export default function AuthPage() {
                 </>
               )}
 
-              {/* Сообщение об успехе/ошибке */}
               {message.text && (
                 <div
                   className={`p-3 md:p-4 rounded-xl mb-6 flex items-center justify-center ${
@@ -480,19 +538,36 @@ export default function AuthPage() {
 
                 {!isRegister && (
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="remember"
-                        className="w-4 h-4 rounded focus:ring-gray-500/20 border-gray-300"
-                        style={{ accentColor: buttonColor }}
-                      />
-                      <label
-                        htmlFor="remember"
-                        className="ml-2 text-gray-700 text-sm"
-                      >
-                        Запомнить меня
-                      </label>
+                    <div className="flex items-center gap-2">
+                      {rememberMe ? (
+                        <button
+                          type="button"
+                          onClick={clearSavedCredentials}
+                          className="flex items-center gap-2 text-sm text-gray-700 hover:text-red-600 transition-colors"
+                          title="Удалить сохранённые данные"
+                        >
+                          <FaTrash className="text-red-500" />
+                          <span>Забыть меня</span>
+                        </button>
+                      ) : (
+                        <>
+                          <input
+                            type="checkbox"
+                            id="remember"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="w-4 h-4 rounded focus:ring-gray-500/20 border-gray-300"
+                            style={{ accentColor: buttonColor }}
+                          />
+                          <label
+                            htmlFor="remember"
+                            className="text-gray-700 text-sm cursor-pointer flex items-center gap-1"
+                          >
+                            <FaHistory />
+                            <span>Запомнить меня</span>
+                          </label>
+                        </>
+                      )}
                     </div>
                     <button
                       type="button"
