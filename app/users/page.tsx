@@ -22,7 +22,8 @@ import {
 } from "react-icons/fa";
 import { useToast } from "@/app/ToastProvider";
 import ConfirmModal from "../components/ui/ConfirmModal";
-
+import Pagination from "../components/pagination/Pagination";
+import usePagination from "@/hooks/usePagination";
 interface User {
   id: number;
   name: string;
@@ -38,7 +39,6 @@ interface User {
   active: boolean;
   phone?: string;
 }
-
 
 type EditUserForm = {
   name: string;
@@ -68,7 +68,6 @@ const UsersPage = () => {
     name: string;
   } | null>(null);
 
- 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editFormData, setEditFormData] = useState<EditUserForm>({
@@ -85,7 +84,6 @@ const UsersPage = () => {
     phone: "",
   });
   const [editLoading, setEditLoading] = useState(false);
-
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -146,6 +144,23 @@ const UsersPage = () => {
     return matchesSearch && matchesFilter;
   });
 
+  const {
+    firstContentIndex,
+    lastContentIndex,
+    nextPage,
+    prevPage,
+    page,
+    setPage,
+    totalPages,
+  } = usePagination({
+    contentPerPage: 10, 
+    count: filteredUsers.length,
+  });
+
+
+  const currentUsers = filteredUsers.slice(firstContentIndex, lastContentIndex);
+
+
   const handleViewProfile = (userId: number) => {
     window.location.href = `/personal-account/${userId}`;
   };
@@ -164,7 +179,6 @@ const UsersPage = () => {
 
     const prevUsers = [...users];
 
-   
     setUsers(
       users.map((user) =>
         user.id === userId ? { ...user, active: !currentActive } : user
@@ -188,7 +202,6 @@ const UsersPage = () => {
           }`
         );
       } else {
-     
         setUsers(prevUsers);
         notifyError("Ошибка при обновлении статуса пользователя");
       }
@@ -244,7 +257,6 @@ const UsersPage = () => {
     }
   };
 
-  
   const handleSaveUser = async () => {
     if (!editingUser) return;
 
@@ -291,7 +303,6 @@ const UsersPage = () => {
     setIsDeleteModalOpen(true);
   };
 
-
   const confirmDeleteUser = async () => {
     if (!userToDelete) return;
 
@@ -299,7 +310,6 @@ const UsersPage = () => {
 
     const prevUsers = [...users];
 
-   
     setUsers(users.filter((user) => user.id !== userToDelete.id));
 
     try {
@@ -312,7 +322,6 @@ const UsersPage = () => {
         const data = await res.json();
         notifySuccess(data.message || "Пользователь успешно удален");
       } else {
-        
         setUsers(prevUsers);
         const errorData = await res.json();
         notifyError(errorData.error || "Ошибка при удалении пользователя");
@@ -394,7 +403,6 @@ const UsersPage = () => {
               <button
                 className="px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium"
                 onClick={() => {
-               
                   notifyInfo("Функция создания нового пользователя");
                 }}
               >
@@ -477,7 +485,7 @@ const UsersPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredUsers.map((user) => (
+                {currentUsers.map((user) => (
                   <tr
                     key={user.id}
                     className="hover:bg-gray-50 transition-colors"
@@ -649,23 +657,22 @@ const UsersPage = () => {
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="text-gray-600 text-sm mb-4 md:mb-0">
-                Показано {filteredUsers.length} из {users.length} пользователей
+                Показано {firstContentIndex + 1}-
+                {Math.min(lastContentIndex, filteredUsers.length)} из{" "}
+                {filteredUsers.length} пользователей
+                {searchTerm && (
+                  <span className="ml-2 text-gray-500">
+                    (поиск: "{searchTerm}")
+                  </span>
+                )}
               </div>
-
-              <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Назад
-                </button>
-                <span className="px-3 py-1 bg-[#5a6c7d] text-white rounded-lg">
-                  1
-                </span>
-                <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100">
-                  2
-                </button>
-                <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100">
-                  Вперед
-                </button>
-              </div>
+              <Pagination
+                totalPages={totalPages}
+                page={page}
+                setPage={setPage}
+                nextPage={nextPage}
+                prevPage={prevPage}
+              />
             </div>
           </div>
         </div>
