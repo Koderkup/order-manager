@@ -22,7 +22,8 @@ import {
 } from "react-icons/fa";
 import { useToast } from "@/app/ToastProvider";
 import ConfirmModal from "../components/ui/ConfirmModal";
-
+import Pagination from "../components/pagination/Pagination";
+import usePagination from "@/hooks/usePagination";
 interface User {
   id: number;
   name: string;
@@ -38,7 +39,6 @@ interface User {
   active: boolean;
   phone?: string;
 }
-
 
 type EditUserForm = {
   name: string;
@@ -68,7 +68,6 @@ const UsersPage = () => {
     name: string;
   } | null>(null);
 
- 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editFormData, setEditFormData] = useState<EditUserForm>({
@@ -85,7 +84,6 @@ const UsersPage = () => {
     phone: "",
   });
   const [editLoading, setEditLoading] = useState(false);
-
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -164,7 +162,6 @@ const UsersPage = () => {
 
     const prevUsers = [...users];
 
-   
     setUsers(
       users.map((user) =>
         user.id === userId ? { ...user, active: !currentActive } : user
@@ -188,7 +185,6 @@ const UsersPage = () => {
           }`
         );
       } else {
-     
         setUsers(prevUsers);
         notifyError("Ошибка при обновлении статуса пользователя");
       }
@@ -244,7 +240,6 @@ const UsersPage = () => {
     }
   };
 
-  
   const handleSaveUser = async () => {
     if (!editingUser) return;
 
@@ -291,7 +286,6 @@ const UsersPage = () => {
     setIsDeleteModalOpen(true);
   };
 
-
   const confirmDeleteUser = async () => {
     if (!userToDelete) return;
 
@@ -299,7 +293,6 @@ const UsersPage = () => {
 
     const prevUsers = [...users];
 
-   
     setUsers(users.filter((user) => user.id !== userToDelete.id));
 
     try {
@@ -312,7 +305,6 @@ const UsersPage = () => {
         const data = await res.json();
         notifySuccess(data.message || "Пользователь успешно удален");
       } else {
-        
         setUsers(prevUsers);
         const errorData = await res.json();
         notifyError(errorData.error || "Ошибка при удалении пользователя");
@@ -394,7 +386,6 @@ const UsersPage = () => {
               <button
                 className="px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium"
                 onClick={() => {
-               
                   notifyInfo("Функция создания нового пользователя");
                 }}
               >
