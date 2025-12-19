@@ -18,6 +18,8 @@ import {
 import { useToast } from "@/app/ToastProvider";
 import { User, useUserStore } from "@/store/userStore";
 import ConfirmModal from "../components/ui/ConfirmModal";
+import Pagination from "../components/pagination/Pagination";
+import usePagination from "@/hooks/usePagination";
 
 interface Contract {
   client_id: any;
@@ -53,15 +55,13 @@ const ContractsPage = () => {
     active: true,
   });
 
+
+  
+
   useEffect(() => {
     const checkAuthAndRole = async () => {
       try {
         const currentUser = useUserStore.getState().user;
-
-        // if (!currentUser) {
-        //   router.push("/login");
-        //   return;
-        // }
 
         if (currentUser?.role !== "admin") {
           router.push(`/contracts/${currentUser?.id}`);
@@ -271,6 +271,25 @@ const ContractsPage = () => {
       return status.status === "active";
     }).length;
   };
+
+  const {
+    firstContentIndex,
+    lastContentIndex,
+    nextPage,
+    prevPage,
+    page,
+    setPage,
+    totalPages,
+  } = usePagination({
+    contentPerPage: 10,
+    count: filteredContracts.length,
+  });
+
+   const currentContracts = filteredContracts.slice(
+     firstContentIndex,
+     lastContentIndex
+   );
+
 
   const handleViewPricing = (contractId: number) => {
     notifyInfo(`Переход к прайс-листу договора №${contractId}`);
@@ -550,8 +569,8 @@ const ContractsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredContracts.length > 0 ? (
-                  filteredContracts.map((contract) => {
+                {currentContracts.length > 0 ? (
+                  currentContracts.map((contract) => {
                     const status = getContractStatus(contract);
                     return (
                       <tr
@@ -638,9 +657,9 @@ const ContractsPage = () => {
                             <button
                               onClick={() => {
                                 handleViewPricing(contract.id);
-                               router.push(
-                                 `/price?clientId=${contract.client_id}`
-                               );
+                                router.push(
+                                  `/price?clientId=${contract.client_id}`
+                                );
                               }}
                               className="text-[#5a6c7d] hover:text-[#4a5a6a] font-medium flex items-center"
                             >
@@ -671,33 +690,22 @@ const ContractsPage = () => {
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="text-gray-600 text-sm mb-4 md:mb-0">
-                Показано {filteredContracts.length} из {contracts.length}{" "}
-                договоров
+                Показано {firstContentIndex + 1}-
+                {Math.min(lastContentIndex, filteredContracts.length)} из{" "}
+                {filteredContracts.length} пользователей
+                {searchTerm && (
+                  <span className="ml-2 text-gray-500">
+                    (поиск: "{searchTerm}")
+                  </span>
+                )}
               </div>
-
-              <div className="flex items-center space-x-2">
-                <button
-                  className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled
-                >
-                  Назад
-                </button>
-                <span className="px-3 py-1 bg-[#5a6c7d] text-white rounded-lg">
-                  1
-                </span>
-                <button
-                  className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100"
-                  disabled={contracts.length <= 10}
-                >
-                  2
-                </button>
-                <button
-                  className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100"
-                  disabled={contracts.length <= 10}
-                >
-                  Вперед
-                </button>
-              </div>
+              <Pagination
+                totalPages={totalPages}
+                page={page}
+                setPage={setPage}
+                nextPage={nextPage}
+                prevPage={prevPage}
+              />
             </div>
           </div>
         </div>
