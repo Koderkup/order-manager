@@ -144,6 +144,23 @@ const UsersPage = () => {
     return matchesSearch && matchesFilter;
   });
 
+  const {
+    firstContentIndex,
+    lastContentIndex,
+    nextPage,
+    prevPage,
+    page,
+    setPage,
+    totalPages,
+  } = usePagination({
+    contentPerPage: 10, 
+    count: filteredUsers.length,
+  });
+
+
+  const currentUsers = filteredUsers.slice(firstContentIndex, lastContentIndex);
+
+
   const handleViewProfile = (userId: number) => {
     window.location.href = `/personal-account/${userId}`;
   };
@@ -468,7 +485,7 @@ const UsersPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredUsers.map((user) => (
+                {currentUsers.map((user) => (
                   <tr
                     key={user.id}
                     className="hover:bg-gray-50 transition-colors"
@@ -640,23 +657,22 @@ const UsersPage = () => {
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="text-gray-600 text-sm mb-4 md:mb-0">
-                Показано {filteredUsers.length} из {users.length} пользователей
+                Показано {firstContentIndex + 1}-
+                {Math.min(lastContentIndex, filteredUsers.length)} из{" "}
+                {filteredUsers.length} пользователей
+                {searchTerm && (
+                  <span className="ml-2 text-gray-500">
+                    (поиск: "{searchTerm}")
+                  </span>
+                )}
               </div>
-
-              <div className="flex items-center space-x-2">
-                <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">
-                  Назад
-                </button>
-                <span className="px-3 py-1 bg-[#5a6c7d] text-white rounded-lg">
-                  1
-                </span>
-                <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100">
-                  2
-                </button>
-                <button className="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100">
-                  Вперед
-                </button>
-              </div>
+              <Pagination
+                totalPages={totalPages}
+                page={page}
+                setPage={setPage}
+                nextPage={nextPage}
+                prevPage={prevPage}
+              />
             </div>
           </div>
         </div>
