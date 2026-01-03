@@ -32,7 +32,7 @@ const Footer: React.FC<FooterProps> = ({ className }) => {
 
   return (
     <footer
-      className={`bg-background text-foreground shadow-inner shadow-gray-200  transition-colors duration-300 h-20 flex items-center ${
+      className={`bg-background text-foreground shadow-inner shadow-gray-200  transition-colors duration-300 flex items-center ${
         className ?? ""
       }`}
     >
