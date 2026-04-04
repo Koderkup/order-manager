@@ -38,14 +38,14 @@ export async function POST(req: Request) {
         id: user.id,
         role: user.role,
         email: user.email,
-        access:
-          typeof user.access === "boolean"
-            ? user.access
-              ? 1
-              : 0
-            : user.access,
+        // access:
+        //   typeof user.access === "boolean"
+        //     ? user.access
+        //       ? 1
+        //       : 0
+        //     : user.access,
         create_time: user.create_time,
-        code: user.code ?? "",
+        // code: user.code ?? "",
         name: user.name ?? "",
         inn: user.inn ?? "",
         kpp: user.kpp ?? "",
@@ -59,9 +59,9 @@ export async function POST(req: Request) {
       id: dbUser.id,
       role: dbUser.role,
       email: dbUser.email,
-      access: dbUser.access,
+      // access: dbUser.access,
       create_time: dbUser.create_time,
-      code: dbUser.code ?? null,
+      // code: dbUser.code ?? null,
       name: dbUser.name ?? null,
       inn: dbUser.inn ?? null,
       kpp: dbUser.kpp ?? null,

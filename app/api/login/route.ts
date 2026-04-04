@@ -74,7 +74,8 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (err: any) {
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error("Ошибка .....")
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
