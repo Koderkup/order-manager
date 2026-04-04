@@ -116,12 +116,12 @@ const ContractsPage = () => {
     return new Intl.NumberFormat('ru-RU').format(parseFloat(amount));
   };
 
-  // const getContractStatus = (contract: Contract) => {
-  //   if (contract.active === 0) {
-  //     return { status: 'inactive', text: 'Сформирован' };
-  //   }
-  //   return { status: 'active', text: 'Новый' };
-  // };
+  const getContractStatus = (contract: Contract) => {
+    if (contract.active === 0) {
+      return { status: 'inactive', text: 'Сформирован' };
+    }
+    return { status: 'active', text: 'Новый' };
+  };
 
   const isExpired = (contract: Contract) => {
     if (contract.active !== 1) return false;
