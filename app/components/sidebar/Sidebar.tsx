@@ -243,7 +243,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         {user && user.role === "admin" && (
           <Link href="/users" className={linkClass("/users")}>
             <FaUsers className="w-6 mr-3" />
-            <span>Клиеты</span>
+            <span>Пользователи</span>
           </Link>
         )}
       </nav>

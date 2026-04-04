@@ -268,9 +268,9 @@ const PricePage = () => {
                     </td>
                   </tr>
                 ) : (
-                  priceItems.map((item) => (
+                  priceItems.map((item, index) => (
                     <tr
-                      key={item.id}
+                      key={item.id ?? index}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
                       <td className="p-3 md:p-4 font-medium text-gray-800">

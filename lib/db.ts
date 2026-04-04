@@ -13,7 +13,7 @@ try {
   };
   console.log("✅ SSL сертификат загружен");
 } catch (error) {
-  console.warn("⚠️ Сертификат не найден, используем стандартную проверку");
+  console.warn("⚠️ Сертификат не найден, используем стандартную проверку", error);
   sslConfig = {
     rejectUnauthorized: true, 
   };

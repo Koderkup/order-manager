@@ -33,33 +33,33 @@ const Footer: React.FC<FooterProps> = ({ className }) => {
   return (
     <footer
       className={`bg-background text-foreground shadow-inner shadow-gray-200  transition-colors duration-300 flex items-center ${
-        className ?? ""
+        className ?? ''
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col items-center space-y-4">
-        <div className="flex items-center space-x-6">
-          <Link href="/" className={linkClass("/")}>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col items-center space-y-4'>
+        <div className='flex items-center space-x-6'>
+          <Link href='/' className={linkClass('/')}>
             Главная
           </Link>
           <Link
             href={`/personal-account`}
-            className={linkClass("/personal-account")}
+            className={linkClass('/personal-account')}
           >
             Профиль
           </Link>
-          <Link href="/contracts" className={linkClass("/contracts")}>
+          <Link href='/contracts' className={linkClass('/contracts')}>
             Договора
           </Link>
-          <Link href="/my-orders" className={linkClass("/my-orders")}>
+          <Link href='/my-orders' className={linkClass('/my-orders')}>
             Заказы
           </Link>
-          <Link href="/price" className={linkClass("/price")}>
+          <Link href='/price' className={linkClass('/price')}>
             Прайс
           </Link>
         </div>
 
-        <p className="text-sm text-center">
-          ЦПМ "Молочник версия 1.0" © {new Date().getFullYear()} Все права
+        <p className='text-sm text-center'>
+          Цифровая платформа клиента © {new Date().getFullYear()} Все права
           защищены.
         </p>
       </div>

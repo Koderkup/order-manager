@@ -357,7 +357,7 @@ const UsersPage = () => {
       case "manager":
         return "Менеджер";
       case "client":
-        return "Клиент";
+        return "Пользователь";
       default:
         return role;
     }
@@ -380,48 +380,48 @@ const UsersPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className='min-h-screen bg-gray-50 p-4 md:p-6'>
+      <div className='max-w-7xl mx-auto'>
         {/* Заголовок страницы */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-medium text-gray-900">
+        <div className='mb-8'>
+          <h1 className='text-3xl font-medium text-gray-900'>
             Управление пользователями
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className='text-gray-600 mt-2'>
             Просмотр и управление учетными записями пользователей
           </p>
         </div>
 
         {/* Основная карточка */}
-        <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+        <div className='bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden'>
           {/* Шапка с действиями */}
-          <div className="px-6 py-6 border-b border-gray-200">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <h2 className="text-2xl font-medium text-gray-900">
+          <div className='px-6 py-6 border-b border-gray-200'>
+            <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4'>
+              <h2 className='text-2xl font-medium text-gray-900'>
                 Список пользователей
               </h2>
-              <button
-                className="px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium"
+              {/* <button
+                className='px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium'
                 onClick={() => {
-                  notifyInfo("Функция создания нового пользователя");
+                  notifyInfo('Функция создания нового пользователя');
                 }}
               >
                 + Добавить пользователя
-              </button>
+              </button> */}
             </div>
           </div>
 
           {/* Панель поиска и фильтров */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex flex-col md:flex-row gap-4">
+          <div className='px-6 py-4 border-b border-gray-200 bg-gray-50'>
+            <div className='flex flex-col md:flex-row gap-4'>
               {/* Поиск */}
-              <div className="flex-1">
-                <div className="relative">
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <div className='flex-1'>
+                <div className='relative'>
+                  <FaSearch className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
                   <input
-                    type="text"
-                    placeholder="Поиск по имени, email, ИНН или коду..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                    type='text'
+                    placeholder='Поиск по имени, email, ИНН или коду...'
+                    className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -429,28 +429,28 @@ const UsersPage = () => {
               </div>
 
               {/* Фильтры */}
-              <div className="flex flex-wrap gap-3">
-                <div className="flex items-center gap-2">
-                  <FaFilter className="text-gray-400" />
+              <div className='flex flex-wrap gap-3'>
+                <div className='flex items-center gap-2'>
+                  <FaFilter className='text-gray-400' />
                   <select
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent bg-white"
+                    className='px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent bg-white'
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                   >
-                    <option value="all">Все пользователи</option>
-                    <option value="active">Только активные</option>
-                    <option value="inactive">Только неактивные</option>
-                    <option value="admin">Только админы</option>
-                    <option value="manager">Только менеджеры</option>
-                    <option value="client">Только клиенты</option>
+                    <option value='all'>Все пользователи</option>
+                    <option value='active'>Только активные</option>
+                    <option value='inactive'>Только неактивные</option>
+                    <option value='admin'>Только админы</option>
+                    <option value='manager'>Только менеджеры</option>
+                    <option value='client'>Только клиенты</option>
                   </select>
                 </div>
 
                 <button
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                  className='px-4 py-2 text-gray-600 hover:text-gray-800 font-medium rounded-lg hover:bg-gray-100 transition-colors'
                   onClick={() => {
-                    setSearchTerm("");
-                    setFilter("all");
+                    setSearchTerm('');
+                    setFilter('all');
                   }}
                 >
                   Сбросить
@@ -460,150 +460,150 @@ const UsersPage = () => {
           </div>
 
           {/* Таблица пользователей */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
+          <div className='overflow-x-auto'>
+            <table className='min-w-full'>
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
+                <tr className='bg-gray-50'>
+                  <th className='py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider'>
                     Пользователь
                   </th>
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
+                  <th className='py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider'>
                     Контактная информация
                   </th>
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
+                  <th className='py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider'>
                     Роль
                   </th>
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
+                  <th className='py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider'>
                     Статус
                   </th>
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
+                  <th className='py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider'>
                     Регистрация
                   </th>
-                  <th className="py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider">
+                  <th className='py-4 px-6 text-left text-gray-700 font-medium text-sm uppercase tracking-wider'>
                     Действия
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className='divide-y divide-gray-200'>
                 {currentUsers.map((user) => (
                   <tr
                     key={user.id}
-                    className="hover:bg-gray-50 transition-colors"
+                    className='hover:bg-gray-50 transition-colors'
                   >
-                    <td className="py-4 px-6">
-                      <div className="flex items-center">
-                        <div className="bg-blue-50 p-2 rounded-lg mr-3">
+                    <td className='py-4 px-6'>
+                      <div className='flex items-center'>
+                        <div className='bg-blue-50 p-2 rounded-lg mr-3'>
                           {getRoleIcon(user.role)}
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">
+                          <div className='font-medium text-gray-900'>
                             {user.name}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className='text-sm text-gray-500'>
                             Код: {user.code}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="space-y-1">
-                        <div className="flex items-center">
-                          <FaEnvelope className="text-gray-400 mr-2 text-sm" />
-                          <span className="text-gray-700 text-sm">
+                    <td className='py-4 px-6'>
+                      <div className='space-y-1'>
+                        <div className='flex items-center'>
+                          <FaEnvelope className='text-gray-400 mr-2 text-sm' />
+                          <span className='text-gray-700 text-sm'>
                             {user.email}
                           </span>
                         </div>
                         {user.phone && (
-                          <div className="flex items-center">
-                            <FaPhone className="text-gray-400 mr-2 text-sm" />
-                            <span className="text-gray-700 text-sm">
+                          <div className='flex items-center'>
+                            <FaPhone className='text-gray-400 mr-2 text-sm' />
+                            <span className='text-gray-700 text-sm'>
                               {user.phone}
                             </span>
                           </div>
                         )}
-                        <div className="flex items-center">
-                          <FaIdCard className="text-gray-400 mr-2 text-sm" />
-                          <span className="text-gray-700 text-sm">
+                        <div className='flex items-center'>
+                          <FaIdCard className='text-gray-400 mr-2 text-sm' />
+                          <span className='text-gray-700 text-sm'>
                             ИНН: {user.inn}
                           </span>
                         </div>
                         {user.kpp && (
-                          <div className="flex items-center">
-                            <FaIdCard className="text-gray-400 mr-2 text-sm" />
-                            <span className="text-gray-700 text-sm">
+                          <div className='flex items-center'>
+                            <FaIdCard className='text-gray-400 mr-2 text-sm' />
+                            <span className='text-gray-700 text-sm'>
                               КПП: {user.kpp}
                             </span>
                           </div>
                         )}
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center">
+                    <td className='py-4 px-6'>
+                      <div className='flex items-center'>
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            user.role === "admin"
-                              ? "bg-red-100 text-red-800"
-                              : user.role === "manager"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
+                            user.role === 'admin'
+                              ? 'bg-red-100 text-red-800'
+                              : user.role === 'manager'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-blue-100 text-blue-800'
                           }`}
                         >
                           {getRoleIcon(user.role)}
-                          <span className="ml-1.5">
+                          <span className='ml-1.5'>
                             {getRoleText(user.role)}
                           </span>
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex flex-col gap-2">
+                    <td className='py-4 px-6'>
+                      <div className='flex flex-col gap-2'>
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                             user.active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
                           }`}
                         >
                           {user.active ? (
-                            <FaCheckCircle className="mr-1.5" />
+                            <FaCheckCircle className='mr-1.5' />
                           ) : (
-                            <FaTimesCircle className="mr-1.5" />
+                            <FaTimesCircle className='mr-1.5' />
                           )}
-                          {user.active ? "Активен" : "Не активен"}
+                          {user.active ? 'Активен' : 'Не активен'}
                         </span>
-                        <span
+                        {/* <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                             user.access === 1
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
                           }`}
                         >
                           {user.access === 1 ? (
-                            <FaCheckCircle className="mr-1.5" />
+                            <FaCheckCircle className='mr-1.5' />
                           ) : (
-                            <FaTimesCircle className="mr-1.5" />
+                            <FaTimesCircle className='mr-1.5' />
                           )}
                           {user.access === 1
-                            ? "Доступ разрешен"
-                            : "Доступ ограничен"}
-                        </span>
+                            ? 'Доступ разрешен'
+                            : 'Доступ ограничен'}
+                        </span> */}
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center">
-                        <FaCalendarAlt className="text-gray-400 mr-2" />
-                        <span className="text-gray-700">
+                    <td className='py-4 px-6'>
+                      <div className='flex items-center'>
+                        <FaCalendarAlt className='text-gray-400 mr-2' />
+                        <span className='text-gray-700'>
                           {formatDate(user.create_time)}
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex flex-col gap-2">
+                    <td className='py-4 px-6'>
+                      <div className='flex flex-col gap-2'>
                         <button
                           onClick={() => handleViewProfile(user.id)}
-                          className="text-[#5a6c7d] hover:text-[#4a5a6a] font-medium flex items-center text-sm"
+                          className='text-[#5a6c7d] hover:text-[#4a5a6a] font-medium flex items-center text-sm'
                         >
-                          <FaEye className="mr-1.5" />
+                          <FaEye className='mr-1.5' />
                           Профиль
                         </button>
 
@@ -613,18 +613,18 @@ const UsersPage = () => {
                           }
                           className={`text-sm font-medium flex items-center ${
                             user.active
-                              ? "text-red-600 hover:text-red-800"
-                              : "text-green-600 hover:text-green-800"
+                              ? 'text-red-600 hover:text-red-800'
+                              : 'text-green-600 hover:text-green-800'
                           }`}
                         >
                           {user.active ? (
                             <>
-                              <FaTimesCircle className="mr-1.5" />
+                              <FaTimesCircle className='mr-1.5' />
                               Деактивировать
                             </>
                           ) : (
                             <>
-                              <FaCheckCircle className="mr-1.5" />
+                              <FaCheckCircle className='mr-1.5' />
                               Активировать
                             </>
                           )}
@@ -632,17 +632,17 @@ const UsersPage = () => {
 
                         <button
                           onClick={() => handleEditUser(user)}
-                          className="text-gray-600 hover:text-gray-800 font-medium flex items-center text-sm"
+                          className='text-gray-600 hover:text-gray-800 font-medium flex items-center text-sm'
                         >
-                          <FaArrowRight className="mr-1.5" />
+                          <FaArrowRight className='mr-1.5' />
                           Редактировать
                         </button>
 
                         <button
                           onClick={() => handleDeleteUser(user)}
-                          className="text-red-600 hover:text-red-800 font-medium flex items-center text-sm"
+                          className='text-red-600 hover:text-red-800 font-medium flex items-center text-sm'
                         >
-                          <FaTrash className="mr-1.5" />
+                          <FaTrash className='mr-1.5' />
                           Удалить
                         </button>
                       </div>
@@ -654,15 +654,15 @@ const UsersPage = () => {
           </div>
 
           {/* Статистика и пагинация */}
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="text-gray-600 text-sm mb-4 md:mb-0">
+          <div className='px-6 py-4 border-t border-gray-200 bg-gray-50'>
+            <div className='flex flex-col md:flex-row justify-between items-center'>
+              <div className='text-gray-600 text-sm mb-4 md:mb-0'>
                 Показано {firstContentIndex + 1}-
-                {Math.min(lastContentIndex, filteredUsers.length)} из{" "}
+                {Math.min(lastContentIndex, filteredUsers.length)} из{' '}
                 {filteredUsers.length} пользователей
                 {searchTerm && (
-                  <span className="ml-2 text-gray-500">
-                    (поиск: "{searchTerm}")
+                  <span className='ml-2 text-gray-500'>
+                    (поиск: `&quot;${searchTerm}&rdquo;`)
                   </span>
                 )}
               </div>
@@ -678,59 +678,59 @@ const UsersPage = () => {
         </div>
 
         {/* Статистика */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+        <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mt-8'>
+          <div className='bg-white rounded-xl shadow border border-gray-200 p-6'>
+            <div className='flex items-center justify-between'>
               <div>
-                <p className="text-gray-600 text-sm">Всего пользователей</p>
-                <p className="text-3xl font-semibold text-gray-900 mt-1">
+                <p className='text-gray-600 text-sm'>Всего пользователей</p>
+                <p className='text-3xl font-semibold text-gray-900 mt-1'>
                   {users.length}
                 </p>
               </div>
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <FaUser className="text-blue-600 text-2xl" />
+              <div className='bg-blue-100 p-3 rounded-lg'>
+                <FaUser className='text-blue-600 text-2xl' />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+          <div className='bg-white rounded-xl shadow border border-gray-200 p-6'>
+            <div className='flex items-center justify-between'>
               <div>
-                <p className="text-gray-600 text-sm">Активные</p>
-                <p className="text-3xl font-semibold text-gray-900 mt-1">
+                <p className='text-gray-600 text-sm'>Активные</p>
+                <p className='text-3xl font-semibold text-gray-900 mt-1'>
                   {users.filter((u) => u.active).length}
                 </p>
               </div>
-              <div className="bg-green-100 p-3 rounded-lg">
-                <FaCheckCircle className="text-green-600 text-2xl" />
+              <div className='bg-green-100 p-3 rounded-lg'>
+                <FaCheckCircle className='text-green-600 text-2xl' />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+          <div className='bg-white rounded-xl shadow border border-gray-200 p-6'>
+            <div className='flex items-center justify-between'>
               <div>
-                <p className="text-gray-600 text-sm">Администраторы</p>
-                <p className="text-3xl font-semibold text-gray-900 mt-1">
-                  {users.filter((u) => u.role === "admin").length}
+                <p className='text-gray-600 text-sm'>Администраторы</p>
+                <p className='text-3xl font-semibold text-gray-900 mt-1'>
+                  {users.filter((u) => u.role === 'admin').length}
                 </p>
               </div>
-              <div className="bg-red-100 p-3 rounded-lg">
-                <FaCrown className="text-red-600 text-2xl" />
+              <div className='bg-red-100 p-3 rounded-lg'>
+                <FaCrown className='text-red-600 text-2xl' />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
+          <div className='bg-white rounded-xl shadow border border-gray-200 p-6'>
+            <div className='flex items-center justify-between'>
               <div>
-                <p className="text-gray-600 text-sm">Клиенты</p>
-                <p className="text-3xl font-semibold text-gray-900 mt-1">
-                  {users.filter((u) => u.role === "client").length}
+                <p className='text-gray-600 text-sm'>Клиенты</p>
+                <p className='text-3xl font-semibold text-gray-900 mt-1'>
+                  {users.filter((u) => u.role === 'client').length}
                 </p>
               </div>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <FaUserCircle className="text-purple-600 text-2xl" />
+              <div className='bg-purple-100 p-3 rounded-lg'>
+                <FaUserCircle className='text-purple-600 text-2xl' />
               </div>
             </div>
           </div>
@@ -752,12 +752,12 @@ const UsersPage = () => {
         message={
           selectedUser
             ? `Вы уверены, что хотите ${
-                selectedUser.active ? "деактивировать" : "активировать"
+                selectedUser.active ? 'деактивировать' : 'активировать'
               } пользователя "${selectedUser.name}"?`
-            : ""
+            : ''
         }
-        confirmText={selectedUser?.active ? "Деактивировать" : "Активировать"}
-        confirmColor={selectedUser?.active ? "red" : "green"}
+        confirmText={selectedUser?.active ? 'Деактивировать' : 'Активировать'}
+        confirmColor={selectedUser?.active ? 'red' : 'green'}
       />
 
       {/* Модальное окно подтверждения удаления */}
@@ -771,20 +771,20 @@ const UsersPage = () => {
         message={
           userToDelete
             ? `Вы уверены, что хотите удалить пользователя "${userToDelete.name}" (${userToDelete.email})? Это действие нельзя отменить.`
-            : ""
+            : ''
         }
-        confirmText="Удалить"
-        confirmColor="red"
+        confirmText='Удалить'
+        confirmColor='red'
       />
 
       {/* Модальное окно редактирования пользователя */}
       {isEditModalOpen && editingUser && (
-        <div className="fixed inset-0 bg-white/60 backdrop-blur flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className='fixed inset-0 bg-white/60 backdrop-blur flex items-center justify-center z-50 p-4'>
+          <div className='bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto'>
             {/* Заголовок модального окна */}
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-medium text-gray-900">
+            <div className='px-6 py-4 border-b border-gray-200'>
+              <div className='flex justify-between items-center'>
+                <h2 className='text-2xl font-medium text-gray-900'>
                   Редактирование пользователя
                 </h2>
                 <button
@@ -792,119 +792,119 @@ const UsersPage = () => {
                     setIsEditModalOpen(false);
                     setEditingUser(null);
                   }}
-                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                  className='text-gray-400 hover:text-gray-600 text-2xl'
                 >
                   &times;
                 </button>
               </div>
-              <p className="text-gray-600 mt-1">
+              <p className='text-gray-600 mt-1'>
                 ID: {editingUser.id} • {editingUser.email}
               </p>
             </div>
 
             {/* Форма редактирования */}
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className='p-6'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                 {/* Основная информация */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                    <FaUser className="mr-2" />
+                <div className='space-y-4'>
+                  <h3 className='text-lg font-medium text-gray-900 flex items-center'>
+                    <FaUser className='mr-2' />
                     Основная информация
                   </h3>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>
                       Имя пользователя
                     </label>
                     <input
-                      type="text"
-                      name="name"
+                      type='text'
+                      name='name'
                       value={editFormData.name}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>
                       Email
                     </label>
                     <input
-                      type="email"
-                      name="email"
+                      type='email'
+                      name='email'
                       value={editFormData.email}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>
                       Телефон
                     </label>
                     <input
-                      type="tel"
-                      name="phone"
+                      type='tel'
+                      name='phone'
                       value={editFormData.phone}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
-                      placeholder="+7 (XXX) XXX-XX-XX"
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
+                      placeholder='+7 (XXX) XXX-XX-XX'
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>
                       Роль
                     </label>
                     <select
-                      name="role"
+                      name='role'
                       value={editFormData.role}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                     >
-                      <option value="client">Клиент</option>
-                      <option value="manager">Менеджер</option>
-                      <option value="admin">Администратор</option>
+                      <option value='client'>Клиент</option>
+                      <option value='manager'>Менеджер</option>
+                      <option value='admin'>Администратор</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>
                       Код пользователя
                     </label>
                     <input
-                      type="text"
-                      name="code"
+                      type='text'
+                      name='code'
                       value={editFormData.code}
                       onChange={handleEditFormChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                     />
                   </div>
                 </div>
 
                 {/* Статус и доступ */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                    <FaCheckCircle className="mr-2" />
-                    Статус и доступ
+                <div className='space-y-4'>
+                  <h3 className='text-lg font-medium text-gray-900 flex items-center'>
+                    <FaCheckCircle className='mr-2' />
+                    Статус
                   </h3>
 
-                  <div className="flex items-center space-x-4">
-                    <label className="flex items-center">
+                  <div className='flex items-center space-x-4'>
+                    <label className='flex items-center'>
                       <input
-                        type="checkbox"
-                        name="active"
+                        type='checkbox'
+                        name='active'
                         checked={editFormData.active}
                         onChange={handleEditFormChange}
-                        className="h-4 w-4 text-[#5a6c7d] focus:ring-[#5a6c7d] border-gray-300 rounded"
+                        className='h-4 w-4 text-[#5a6c7d] focus:ring-[#5a6c7d] border-gray-300 rounded'
                       />
-                      <span className="ml-2 text-gray-700">Активен</span>
+                      <span className='ml-2 text-gray-700'>Активен</span>
                     </label>
 
-                    <label className="flex items-center">
+                    {/* <label className='flex items-center'>
                       <input
-                        type="checkbox"
-                        name="access"
+                        type='checkbox'
+                        name='access'
                         checked={editFormData.access === 1}
                         onChange={(e) => {
                           setEditFormData((prev) => ({
@@ -912,45 +912,45 @@ const UsersPage = () => {
                             access: e.target.checked ? 1 : 0,
                           }));
                         }}
-                        className="h-4 w-4 text-[#5a6c7d] focus:ring-[#5a6c7d] border-gray-300 rounded"
+                        className='h-4 w-4 text-[#5a6c7d] focus:ring-[#5a6c7d] border-gray-300 rounded'
                       />
-                      <span className="ml-2 text-gray-700">
+                      <span className='ml-2 text-gray-700'>
                         Доступ разрешен
                       </span>
-                    </label>
+                    </label> */}
                   </div>
 
                   {/* Реквизиты */}
-                  <div className="mt-6">
-                    <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                      <FaBuilding className="mr-2" />
+                  <div className='mt-6'>
+                    <h3 className='text-lg font-medium text-gray-900 flex items-center'>
+                      <FaBuilding className='mr-2' />
                       Реквизиты компании
                     </h3>
 
-                    <div className="mt-3 space-y-3">
+                    <div className='mt-3 space-y-3'>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className='block text-sm font-medium text-gray-700 mb-1'>
                           ИНН
                         </label>
                         <input
-                          type="text"
-                          name="inn"
+                          type='text'
+                          name='inn'
                           value={editFormData.inn}
                           onChange={handleEditFormChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className='block text-sm font-medium text-gray-700 mb-1'>
                           КПП
                         </label>
                         <input
-                          type="text"
-                          name="kpp"
+                          type='text'
+                          name='kpp'
                           value={editFormData.kpp}
                           onChange={handleEditFormChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                         />
                       </div>
                     </div>
@@ -958,36 +958,36 @@ const UsersPage = () => {
                 </div>
 
                 {/* Адреса */}
-                <div className="md:col-span-2 space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                    <FaMapMarkerAlt className="mr-2" />
+                <div className='md:col-span-2 space-y-4'>
+                  <h3 className='text-lg font-medium text-gray-900 flex items-center'>
+                    <FaMapMarkerAlt className='mr-2' />
                     Адреса
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className='block text-sm font-medium text-gray-700 mb-1'>
                         Юридический адрес
                       </label>
                       <input
-                        type="text"
-                        name="legal_address"
+                        type='text'
+                        name='legal_address'
                         value={editFormData.legal_address}
                         onChange={handleEditFormChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className='block text-sm font-medium text-gray-700 mb-1'>
                         Фактический адрес
                       </label>
                       <input
-                        type="text"
-                        name="actual_address"
+                        type='text'
+                        name='actual_address'
                         value={editFormData.actual_address}
                         onChange={handleEditFormChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent"
+                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                       />
                     </div>
                   </div>
@@ -995,7 +995,7 @@ const UsersPage = () => {
               </div>
 
               {/* Кнопки действий в форме редактирования */}
-              <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+              <div className='flex justify-between items-center mt-8 pt-6 border-t border-gray-200'>
                 {/* Кнопка удаления в форме редактирования */}
                 <button
                   onClick={() => {
@@ -1003,21 +1003,21 @@ const UsersPage = () => {
                     setEditingUser(null);
                     handleDeleteUser(editingUser);
                   }}
-                  className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors font-medium"
+                  className='px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors font-medium'
                   disabled={editLoading}
                 >
-                  <FaTrash className="inline mr-2" />
+                  <FaTrash className='inline mr-2' />
                   Удалить пользователя
                 </button>
 
                 {/* Кнопки отмены и сохранения */}
-                <div className="flex space-x-3">
+                <div className='flex space-x-3'>
                   <button
                     onClick={() => {
                       setIsEditModalOpen(false);
                       setEditingUser(null);
                     }}
-                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    className='px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium'
                     disabled={editLoading}
                   >
                     Отмена
@@ -1025,15 +1025,15 @@ const UsersPage = () => {
                   <button
                     onClick={handleSaveUser}
                     disabled={editLoading}
-                    className="px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className='px-4 py-2 bg-[#5a6c7d] text-white rounded-lg hover:bg-[#4a5a6a] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed'
                   >
                     {editLoading ? (
-                      <span className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <span className='flex items-center'>
+                        <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
                         Сохранение...
                       </span>
                     ) : (
-                      "Сохранить изменения"
+                      'Сохранить изменения'
                     )}
                   </button>
                 </div>
