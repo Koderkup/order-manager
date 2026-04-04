@@ -268,9 +268,9 @@ const PricePage = () => {
                     </td>
                   </tr>
                 ) : (
-                  priceItems.map((item, index) => (
+                  priceItems.map((item) => (
                     <tr
-                      key={item.id ?? index}
+                      key={item.id ?? Date.now()}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
                       <td className="p-3 md:p-4 font-medium text-gray-800">

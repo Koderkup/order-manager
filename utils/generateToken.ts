@@ -4,9 +4,7 @@ export interface AppJwtPayload {
   id: number;
   role: string;
   email: string;
-  access: number; // 0 или 1
   create_time: string;
-  code: string;
   name: string;
   inn: string;
   kpp: string;
