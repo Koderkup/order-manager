@@ -5,9 +5,7 @@ export interface User {
   id: number;
   role: "admin" | "client" | "manager";
   email: string;
-  access: number | boolean;
   create_time: string;
-  code: string | null;
   name: string | null;
   inn: string | null;
   kpp: string | null;

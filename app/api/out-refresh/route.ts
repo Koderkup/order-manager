@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { getConnection } from "@/lib/db";
 import { AppJwtPayload, createAccessToken } from "@/utils/generateToken";
 import { User } from "@/store/userStore";
-
+import { RowDataPacket } from 'mysql2';
 export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get("Authorization");
@@ -18,34 +18,28 @@ export async function POST(req: Request) {
 
     const payload = jwt.verify(
       refreshToken,
-      process.env.NEXT_PUBLIC_JWT_SECRET!
-    ) as any;
+      process.env.NEXT_PUBLIC_JWT_SECRET!,
+    ) as jwt.JwtPayload;
 
     const conn = await getConnection();
-    const [rows] = await conn.execute("SELECT * FROM users WHERE id = ?", [
-      payload.id,
-    ]);
-    if ((rows as any[]).length === 0) {
+    const [rows] = await conn.execute<RowDataPacket[]>(
+      'SELECT * FROM users WHERE id = ?',
+      [payload.id],
+    );
+    if (rows.length === 0) {
       return NextResponse.json(
         { error: "Пользователь не найден" },
         { status: 404 }
       );
     }
-    const dbUser = (rows as any[])[0];
+    const dbUser = rows[0];
 
     function mapUserToJwtPayload(user: User): AppJwtPayload {
       return {
         id: user.id,
         role: user.role,
         email: user.email,
-        access:
-          typeof user.access === "boolean"
-            ? user.access
-              ? 1
-              : 0
-            : user.access,
         create_time: user.create_time,
-        code: user.code ?? "",
         name: user.name ?? "",
         inn: user.inn ?? "",
         kpp: user.kpp ?? "",
@@ -59,9 +53,7 @@ export async function POST(req: Request) {
       id: dbUser.id,
       role: dbUser.role,
       email: dbUser.email,
-      access: dbUser.access,
       create_time: dbUser.create_time,
-      code: dbUser.code ?? null,
       name: dbUser.name ?? null,
       inn: dbUser.inn ?? null,
       kpp: dbUser.kpp ?? null,

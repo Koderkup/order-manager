@@ -1,15 +1,19 @@
-import { NextResponse } from "next/server";
-import { getConnection } from "@/lib/db";
-import bcrypt from "bcryptjs";
-import { createAccessToken, createRefreshToken } from "@/utils/generateToken";
-import { User } from "@/store/userStore";
+import { NextResponse } from 'next/server';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { getConnection } from '@/lib/db';
+import bcrypt from 'bcryptjs';
+import {
+  AppJwtPayload,
+  createAccessToken,
+  createRefreshToken,
+} from '@/utils/generateToken';
+import { User } from '@/store/userStore';
 
 export async function POST(req: Request) {
   try {
     const {
       email,
       password,
-      code,
       name,
       inn,
       kpp,
@@ -18,65 +22,60 @@ export async function POST(req: Request) {
       phone,
     } = await req.json();
 
-    if (!email || !password || !code || !name || !inn) {
+    if (!email || !password || !name || !inn) {
       return NextResponse.json(
-        { error: "Email, пароль, код, наименование и ИНН обязательны" },
-        { status: 400 }
+        { error: 'Email, пароль, код, наименование и ИНН обязательны' },
+        { status: 400 },
       );
     }
 
     const conn = await getConnection();
 
-    const [exists] = await conn.execute(
-      "SELECT id FROM users WHERE email = ?",
-      [email]
+    const [exists] = await conn.execute<RowDataPacket[]>(
+      'SELECT id FROM users WHERE email = ?',
+      [email],
     );
-    if ((exists as any[]).length > 0) {
+    if (exists.length > 0) {
       return NextResponse.json(
-        { error: "Пользователь с таким email уже существует" },
-        { status: 409 }
+        { error: 'Пользователь с таким email уже существует' },
+        { status: 409 },
       );
     }
 
     const hashed = await bcrypt.hash(password, 10);
 
-    
-    const [result] = await conn.execute(
+    const [result] = await conn.execute<ResultSetHeader>(
       `INSERT INTO users 
-        (email, password, code, name, inn, kpp, legal_address, actual_address, phone) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (email, password, name, inn, kpp, legal_address, actual_address, phone) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         email,
         hashed,
-        code,
         name,
         inn,
         kpp || null,
         legal_address || null,
         actual_address || null,
         phone || null,
-      ]
+      ],
     );
 
-    const [newUserRows] = await conn.execute(
-      "SELECT * FROM users WHERE id = ?",
-      [(result as any).insertId]
+    const [newUserRows] = await conn.execute<RowDataPacket[]>(
+      'SELECT * FROM users WHERE id = ?',
+      [result.insertId],
     );
 
-    const dbUser = (newUserRows as any[])[0];
+    const dbUser = newUserRows[0];
 
-   
     const userData: User = {
       id: Number(dbUser.id),
-      role: dbUser.role as "admin" | "client" | "manager", 
+      role: dbUser.role as 'admin' | 'client' | 'manager',
       email: String(dbUser.email),
-      access: dbUser.access === 1 ? 1 : 0, 
       create_time: dbUser.create_time
         ? dbUser.create_time instanceof Date
           ? dbUser.create_time.toISOString()
           : String(dbUser.create_time)
         : new Date().toISOString(),
-      code: dbUser.code ? String(dbUser.code) : null,
       name: dbUser.name ? String(dbUser.name) : null,
       inn: dbUser.inn ? String(dbUser.inn) : null,
       kpp: dbUser.kpp ? String(dbUser.kpp) : null,
@@ -84,42 +83,57 @@ export async function POST(req: Request) {
       actual_address: dbUser.actual_address
         ? String(dbUser.actual_address)
         : null,
-      active: dbUser.active === 1, 
+      active: dbUser.active === 1,
       phone: dbUser.phone ? String(dbUser.phone) : null,
     };
-
-    const accessToken = createAccessToken(dbUser);
-    const refreshToken = createRefreshToken(dbUser);
+    const tokenPayload: AppJwtPayload = {
+      id: userData.id,
+      role: userData.role,
+      email: userData.email,
+      create_time: userData.create_time, 
+      name: userData.name || '',
+      inn: userData.inn || '',
+      kpp: userData.kpp || '',
+      legal_address: userData.legal_address || '',
+      actual_address: userData.actual_address || '',
+      active: userData.active ? 1 : 0, 
+      phone: userData.phone || null,
+    };
+    
+    const accessToken = createAccessToken(tokenPayload);
+    const refreshToken = createRefreshToken(tokenPayload);
 
     const response = NextResponse.json(
       {
-        message: "Регистрация успешна",
+        message: 'Регистрация успешна',
         user: userData,
       },
-      { status: 201 }
+      { status: 201 },
     );
 
-    response.cookies.set("access_token", accessToken, {
+    response.cookies.set('access_token', accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "lax",
+      sameSite: 'lax',
       // secure: process.env.NODE_ENV === "production",
       // sameSite: "strict",
       maxAge: 60 * 15,
     });
 
-    response.cookies.set("refresh_token", refreshToken, {
+    response.cookies.set('refresh_token', refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "lax",
+      sameSite: 'lax',
       // secure: process.env.NODE_ENV === "production",
       // sameSite: "strict",
       maxAge: 60 * 60 * 24 * 7,
     });
 
     return response;
-  } catch (err: any) {
-    console.error("Register error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const Messerror =
+      err instanceof Error ? err : new Error('Неизвестная ошибка');
+    console.error('Register error:', err);
+    return NextResponse.json({ error: Messerror.message }, { status: 500 });
   }
 }
