@@ -539,7 +539,6 @@ const ContractsPage = () => {
               <tbody className='divide-y divide-gray-200'>
                 {currentContracts.length > 0 ? (
                   currentContracts.map((contract) => {
-                    // const status = getContractStatus(contract);
                     return (
                       <tr
                         key={contract.id}
