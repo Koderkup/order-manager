@@ -6,17 +6,14 @@ import {
   FaFileContract,
   FaCalendarAlt,
   FaRubleSign,
-  FaCheckCircle,
-  FaTimesCircle,
   FaSearch,
   FaFilter,
   FaEye,
-  FaPlus,
   FaEdit,
   FaTrash,
 } from 'react-icons/fa';
 import { useToast } from '@/app/ToastProvider';
-import { User, useUserStore } from '@/store/userStore';
+import { useUserStore } from '@/store/userStore';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import Pagination from '../components/pagination/Pagination';
 import usePagination from '@/hooks/usePagination';
@@ -130,7 +127,6 @@ const ContractsPage = () => {
     return now > endDate;
   };
 
-
   const handleFormChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -144,17 +140,12 @@ const ContractsPage = () => {
     }));
   };
 
-  const handleAddContract = () => {
-    setEditingContract(null);
-    setFormData({
-      code: '',
-      name: '',
-      start_date: '',
-      end_date: '',
-      amount: '',
-      active: true,
-    });
-    setShowForm(true);
+  const handleCloseContract = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isChecked = e.target.checked;
+    setFormData((prev) => ({
+      ...prev,
+      active: isChecked,
+    }));
   };
 
   const handleEditContract = (contract: Contract) => {
@@ -165,7 +156,7 @@ const ContractsPage = () => {
       start_date: contract.start_date.split('T')[0],
       end_date: contract.end_date.split('T')[0],
       amount: contract.amount,
-      active: contract.active === 1,
+      active: contract.active === 0,
     });
     setShowForm(true);
   };
@@ -208,7 +199,7 @@ const ContractsPage = () => {
       const url = '/api/contracts';
       const method = editingContract ? 'PUT' : 'POST';
       const body = editingContract
-        ? { id: editingContract.id, ...formData }
+        ? { id: editingContract.id, ...formData, active: formData.active ? false : true }
         : formData;
 
       const res = await fetch(url, {
@@ -231,7 +222,8 @@ const ContractsPage = () => {
         notifyError(data.error || 'Ошибка сохранения договора');
       }
     } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error('Попробуйте позже');
+      const err =
+        error instanceof Error ? error : new Error('Попробуйте позже');
       notifyError(`Ошибка сети при сохранении договора ${err.message}`);
     }
   };
@@ -249,19 +241,6 @@ const ContractsPage = () => {
 
     return matchesSearch && matchesFilter;
   });
-
-  const calculateTotalAmount = () => {
-    return contracts.reduce((total, contract) => {
-      return total + parseFloat(contract.amount);
-    }, 0);
-  };
-
-  const countActiveContracts = () => {
-    return contracts.filter((contract) => {
-      const status = getContractStatus(contract);
-      return status.status === 'active';
-    }).length;
-  };
 
   const {
     firstContentIndex,
@@ -285,13 +264,6 @@ const ContractsPage = () => {
     notifyInfo(`Переход к прайс-листу договора №${contractId}`);
   };
 
-  const handleViewDetails = (contractId: number) => {
-    notifyInfo(`Просмотр договора №${contractId}`);
-  };
-
-
-
-  console.log(currentContracts);
   if (isCheckingAuth || loading) {
     return (
       <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
@@ -335,7 +307,6 @@ const ContractsPage = () => {
                 </span>
               </div>
             </div>
-           
           </div>
         </div>
 
@@ -346,9 +317,9 @@ const ContractsPage = () => {
               <div className='p-6'>
                 <div className='flex justify-between items-center mb-6'>
                   <h2 className='text-2xl font-medium text-gray-900'>
-                    {editingContract
-                      ? 'Редактирование договора'
-                      : 'Создание нового договора'}
+                    {editingContract?.active === 0
+                      ? 'Договор сформирован'
+                      : 'Новый договор'}
                   </h2>
                   <button
                     onClick={() => setShowForm(false)}
@@ -372,6 +343,7 @@ const ContractsPage = () => {
                         className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                         placeholder='C-001'
                         required
+                        disabled={true}
                       />
                     </div>
 
@@ -388,6 +360,7 @@ const ContractsPage = () => {
                         className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                         placeholder='100000.00'
                         required
+                        disabled={true}
                       />
                     </div>
 
@@ -401,8 +374,9 @@ const ContractsPage = () => {
                         value={formData.name}
                         onChange={handleFormChange}
                         className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
-                        placeholder='Договор на поставку оборудования'
+                        placeholder='Договор на поставку'
                         required
+                        disabled={true}
                       />
                     </div>
 
@@ -417,6 +391,7 @@ const ContractsPage = () => {
                         onChange={handleFormChange}
                         className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                         required
+                        disabled={true}
                       />
                     </div>
 
@@ -431,6 +406,7 @@ const ContractsPage = () => {
                         onChange={handleFormChange}
                         className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5a6c7d] focus:border-transparent'
                         required
+                        disabled={true}
                       />
                     </div>
 
@@ -440,14 +416,16 @@ const ContractsPage = () => {
                         id='active'
                         name='active'
                         checked={formData.active}
-                        onChange={handleFormChange}
+                        onChange={handleCloseContract}
                         className='h-4 w-4 text-[#5a6c7d] border-gray-300 rounded focus:ring-[#5a6c7d]'
                       />
                       <label
                         htmlFor='active'
                         className='ml-2 block text-sm text-gray-700'
                       >
-                        Активен
+                        {editingContract?.active === 0
+                          ? '← Снимите отметку для смены статуса'
+                          : 'Сформировать'}
                       </label>
                     </div>
                   </div>
@@ -473,6 +451,9 @@ const ContractsPage = () => {
           </div>
         )}
 
+        {/* Остальной код 
+        ----------------------------------------------------
+        ----------------------------------------------------------*/}
         {/* Основная карточка */}
         <div className='bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden'>
           {/* Шапка с действиями */}
