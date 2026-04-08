@@ -23,8 +23,8 @@ export async function GET(
 
     const payload = jwt.verify(
       accessToken,
-      process.env.NEXT_PUBLIC_JWT_SECRET!
-    ) as any;
+      process.env.NEXT_PUBLIC_JWT_SECRET!,
+    ) as jwt.JwtPayload;
 
     const userId = payload.id;
     const userRole = payload.role;
