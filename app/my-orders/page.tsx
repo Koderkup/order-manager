@@ -11,9 +11,9 @@ export default function MyOrdersRedirect() {
     if (user?.id) {
       router.push(`/my-orders/${user.id}`);
     } else {
-      router.push("/auth");
+      router.push('/auth');
     }
-  }, [router]);
+  }, [router, user?.id]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

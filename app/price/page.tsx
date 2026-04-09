@@ -176,36 +176,36 @@ const PricePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <h1 className="pl-4 md:pl-8 text-[20px] md:text-[28px] font-bold text-gray-800">
+    <div className='min-h-screen bg-gray-50 p-4 md:p-8'>
+      <h1 className='pl-4 md:pl-8 text-[20px] md:text-[28px] font-bold text-gray-800'>
         Прайс-лист
       </h1>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 min-h-[500px] p-6 md:p-8">
+      <div className='bg-white rounded-xl shadow-sm border border-gray-200 min-h-[500px] p-6 md:p-8'>
         {/* Заголовок страницы с фильтром */}
-        <div className="mb-8 pb-6 border-b border-gray-200">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div className='mb-8 pb-6 border-b border-gray-200'>
+          <div className='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4'>
             <div>
-              <h3 className="text-xl md:text-2xl font-medium text-gray-800">
+              <h3 className='text-xl md:text-2xl font-medium text-gray-800'>
                 Прайс-лист
               </h3>
-              <p className="text-sm text-gray-500 mt-1">
-                {user.role === "admin"
-                  ? "Все договоры"
+              <p className='text-sm text-gray-500 mt-1'>
+                {user.role === 'admin'
+                  ? 'Все договоры'
                   : `Ваши договоры (${user.name})`}
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
-              <span className="text-gray-600 whitespace-nowrap">Договор:</span>
+            <div className='flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto'>
+              <span className='text-gray-600 whitespace-nowrap'>Договор:</span>
               <select
                 value={selectedContract}
                 onChange={(e) => setSelectedContract(e.target.value)}
-                className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 min-w-[250px] lg:min-w-[300px]"
+                className='w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 min-w-[250px] lg:min-w-[300px]'
                 disabled={loading || contracts.length === 0}
               >
                 {contracts.length === 0 ? (
-                  <option value="">Нет доступных договоров</option>
+                  <option value=''>Нет доступных договоров</option>
                 ) : (
                   contracts.map((contract) => (
                     <option key={contract.id} value={contract.id.toString()}>
@@ -220,40 +220,40 @@ const PricePage = () => {
 
         {/* Сообщения об ошибке/загрузке */}
         {error && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg">
+          <div className='mb-4 p-4 bg-red-50 text-red-700 rounded-lg'>
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="flex flex-col items-center">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-              <div className="text-gray-500">Загрузка...</div>
+          <div className='flex justify-center items-center h-64'>
+            <div className='flex flex-col items-center'>
+              <div className='w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2'></div>
+              <div className='text-gray-500'>Загрузка...</div>
             </div>
           </div>
         ) : (
           /* Таблица прайс-листа */
-          <div className="overflow-x-auto animate-fadeIn">
-            <table className="w-full">
+          <div className='overflow-x-auto animate-fadeIn'>
+            <table className='w-full'>
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left p-3 md:p-4 text-gray-700 font-semibold">
+                <tr className='bg-gray-50'>
+                  <th className='text-left p-3 md:p-4 text-gray-700 font-semibold'>
                     Код товара
                   </th>
-                  <th className="text-left p-3 md:p-4 text-gray-700 font-semibold">
+                  <th className='text-left p-3 md:p-4 text-gray-700 font-semibold'>
                     Артикул
                   </th>
-                  <th className="text-left p-3 md:p-4 text-gray-700 font-semibold">
+                  <th className='text-left p-3 md:p-4 text-gray-700 font-semibold'>
                     Номенклатура
                   </th>
-                  <th className="text-left p-3 md:p-4 text-gray-700 font-semibold">
+                  <th className='text-left p-3 md:p-4 text-gray-700 font-semibold'>
                     Единица измерения
                   </th>
-                  <th className="text-left p-3 md:p-4 text-gray-700 font-semibold">
+                  <th className='text-left p-3 md:p-4 text-gray-700 font-semibold'>
                     Цена
                   </th>
-                  <th className="text-left p-3 md:p-4 text-gray-700 font-semibold">
+                  <th className='text-left p-3 md:p-4 text-gray-700 font-semibold'>
                     Спецификация
                   </th>
                 </tr>
@@ -261,34 +261,34 @@ const PricePage = () => {
               <tbody>
                 {priceItems.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-gray-500">
+                    <td colSpan={6} className='p-8 text-center text-gray-500'>
                       {selectedContract
-                        ? "Нет товаров для выбранного договора"
-                        : "Выберите договор"}
+                        ? 'Нет товаров для выбранного договора'
+                        : 'Выберите договор'}
                     </td>
                   </tr>
                 ) : (
                   priceItems.map((item) => (
                     <tr
-                      key={item.id ?? Date.now()}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      key={Math.floor(Math.random() *item.id * 1000) + 1}
+                      className='border-b border-gray-100 hover:bg-gray-50 transition-colors'
                     >
-                      <td className="p-3 md:p-4 font-medium text-gray-800">
+                      <td className='p-3 md:p-4 font-medium text-gray-800'>
                         {item.code}
                       </td>
-                      <td className="p-3 md:p-4 text-gray-600">
-                        {item.article || "-"}
+                      <td className='p-3 md:p-4 text-gray-600'>
+                        {item.article || '-'}
                       </td>
-                      <td className="p-3 md:p-4">
-                        <div className="font-medium">{item.name}</div>
+                      <td className='p-3 md:p-4'>
+                        <div className='font-medium'>{item.name}</div>
                       </td>
-                      <td className="p-3 md:p-4 text-gray-600">{item.unit}</td>
-                      <td className="p-3 md:p-4 font-semibold text-gray-800">
+                      <td className='p-3 md:p-4 text-gray-600'>{item.unit}</td>
+                      <td className='p-3 md:p-4 font-semibold text-gray-800'>
                         {formatPrice(item.price)}
                       </td>
-                      <td className="p-3 md:p-4 text-sm text-gray-500">
-                        <div className="font-medium">{item.spec_code}</div>
-                        <div className="text-xs">{item.spec_name}</div>
+                      <td className='p-3 md:p-4 text-sm text-gray-500'>
+                        <div className='font-medium'>{item.spec_code}</div>
+                        <div className='text-xs'>{item.spec_name}</div>
                       </td>
                     </tr>
                   ))
@@ -299,15 +299,15 @@ const PricePage = () => {
         )}
 
         {/* Подвал таблицы */}
-        <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="text-sm text-gray-500">
+        <div className='mt-8 pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
+          <div className='text-sm text-gray-500'>
             Всего позиций: {priceItems.length}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className='text-sm text-gray-500'>
             {selectedContract &&
               contracts.find((c) => c.id.toString() === selectedContract) && (
                 <>
-                  Договор:{" "}
+                  Договор:{' '}
                   {
                     contracts.find((c) => c.id.toString() === selectedContract)!
                       .code
