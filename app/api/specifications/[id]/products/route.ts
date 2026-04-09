@@ -35,10 +35,10 @@ export async function GET(
        FROM specification_products sp
        LEFT JOIN products p ON sp.product_id = p.id
        WHERE sp.specification_id = ?
-       ORDER BY p.name`,
-      [specificationId]
+       ORDER BY p.name ASC`,
+      [specificationId],
     );
-// console.log("specProducts", specProducts);
+
     return NextResponse.json({
       success: true,
       products: specProducts,

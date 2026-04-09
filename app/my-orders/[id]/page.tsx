@@ -1,12 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import {
-  FaTrash,
-  FaEdit,
-  FaPlus,
-  FaSave,
-  FaTimes,
-} from 'react-icons/fa';
+import { FaTrash, FaEdit, FaPlus, FaSave, FaTimes } from 'react-icons/fa';
 import { useUserStore } from '@/store/userStore';
 import { useToast } from '@/app/ToastProvider';
 
@@ -76,7 +70,6 @@ const OrderPage = ({ params }: PageProps) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
 
-  
   const [createOrderItems, setCreateOrderItems] = useState<OrderItem[]>([]);
   const [availableProducts, setAvailableProducts] = useState<
     SpecificationProduct[]
@@ -89,7 +82,6 @@ const OrderPage = ({ params }: PageProps) => {
     number | null
   >(null);
 
-  
   const [editOrderItems, setEditOrderItems] = useState<OrderItem[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [editOrderStatus, setEditOrderStatus] = useState<
@@ -107,7 +99,6 @@ const OrderPage = ({ params }: PageProps) => {
     order_date: new Date().toISOString().split('T')[0],
   });
 
-  
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
@@ -127,7 +118,6 @@ const OrderPage = ({ params }: PageProps) => {
     }
   };
 
-  
   const fetchContracts = async () => {
     try {
       if (!user?.id) return;
@@ -146,19 +136,18 @@ const OrderPage = ({ params }: PageProps) => {
   };
 
   interface ApiProduct {
-  id: number;
-  code: string;
-  name: string;
-  article: string;
-  spec_price: number | null;
-  base_price: number;
-}
+    id: number;
+    code: string;
+    name: string;
+    article: string;
+    spec_price: number | null;
+    base_price: number;
+  }
   const fetchSpecificationProducts = async (contractId: string) => {
     if (!contractId) return;
 
     setIsLoadingAvailableProducts(true);
     try {
-     
       const selectedContract = contracts.find(
         (c) => c.id.toString() === contractId,
       );
@@ -167,7 +156,6 @@ const OrderPage = ({ params }: PageProps) => {
         return;
       }
 
-      
       const specResponse = await fetch(
         `/api/contracts/${contractId}/specifications`,
       );
@@ -249,16 +237,16 @@ const OrderPage = ({ params }: PageProps) => {
       setIsLoadingEditProducts(false);
     }
   };
-interface OrderProduct {
-  id: number;
-  product_id: number;
-  product_name: string;
-  product_code?: string;
-  product_article?: string;
-  quantity: number | string;
-  price: number | string;
-  total: number | string;
-}
+  interface OrderProduct {
+    id: number;
+    product_id: number;
+    product_name: string;
+    product_code?: string;
+    product_article?: string;
+    quantity: number | string;
+    price: number | string;
+    total: number | string;
+  }
   // Загрузка товаров заказа для редактирования
   const fetchOrderProducts = async (orderId: number) => {
     try {
@@ -308,8 +296,6 @@ interface OrderProduct {
       fetchEditSpecificationProducts(selectedOrder.specification_id);
     }
   }, [selectedOrder, isEditModalOpen]);
-
-  
 
   const getNextId = (items: OrderItem[]) => {
     return items.length > 0 ? Math.max(...items.map((item) => item.id)) + 1 : 1;
@@ -446,8 +432,6 @@ interface OrderProduct {
     }
   };
 
-  
-
   const handleEditOrder = async (order: Order) => {
     setSelectedOrder(order);
     setEditOrderStatus(order.status);
@@ -582,8 +566,6 @@ interface OrderProduct {
     }
   };
 
- 
-
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleDateString('ru-RU');
@@ -703,9 +685,14 @@ interface OrderProduct {
                         <td className='p-4'>
                           <button
                             onClick={() => handleEditOrder(order)}
-                            className='px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100'
+                            className={`px-3 py-2 rounded-lg transition-all flex items-center ${
+                              order.status === 'Сформирован'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                            }`}
+                            disabled={order.status === 'Сформирован'}
                           >
-                            <FaEdit className='inline mr-2' /> Редактировать
+                            <FaEdit className='mr-2' /> Редактировать
                           </button>
                         </td>
                       </tr>
