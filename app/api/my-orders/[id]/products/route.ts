@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { getConnection } from "@/lib/db";
-import { PoolConnection } from "mysql2/promise";
+import { PoolConnection, RowDataPacket } from "mysql2/promise";
 
 export async function GET(
   request: NextRequest,
@@ -17,8 +17,8 @@ export async function GET(
 
     const payload = jwt.verify(
       accessToken,
-      process.env.NEXT_PUBLIC_JWT_SECRET!
-    ) as any;
+      process.env.NEXT_PUBLIC_JWT_SECRET!,
+    ) as jwt.JwtPayload;
 
     const userId = payload.id;
     const { id: orderId } = await context.params;
@@ -99,8 +99,8 @@ export async function POST(
 
     const payload = jwt.verify(
       accessToken,
-      process.env.NEXT_PUBLIC_JWT_SECRET!
-    ) as any;
+      process.env.NEXT_PUBLIC_JWT_SECRET!,
+    ) as jwt.JwtPayload;
 
     const userId = payload.id;
     const { id: orderId } = await context.params;
@@ -158,12 +158,12 @@ export async function POST(
         );
       }
 
-      const [totalResult] = await conn.execute(
+      const [totalResult] = await conn.execute<RowDataPacket[]>(
         `SELECT SUM(total) as total_amount FROM order_products WHERE order_id = ?`,
-        [orderId]
+        [orderId],
       );
 
-      const totalAmount = (totalResult as any[])[0].total_amount || 0;
+      const totalAmount = totalResult[0].total_amount || 0;
 
       await conn.execute("UPDATE orders SET amount = ? WHERE id = ?", [
         totalAmount,

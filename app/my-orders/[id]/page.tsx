@@ -1,14 +1,14 @@
-"use client";
-import { useState, useEffect } from "react";
-import { FaTrash, FaEdit, FaPlus, FaSave, FaSearch } from "react-icons/fa";
-import { useUserStore } from "@/store/userStore";
-import { useToast } from "@/app/ToastProvider";
+'use client';
+import { useState, useEffect } from 'react';
+import { FaTrash, FaEdit, FaPlus, FaSave, FaTimes } from 'react-icons/fa';
+import { useUserStore } from '@/store/userStore';
+import { useToast } from '@/app/ToastProvider';
 
 interface Order {
   id: number;
   number: string;
   order_date: string;
-  status: "Выполнен" | "В обработке" | "Отменен";
+  status: 'Новый' | 'Сформирован';
   client_id: number;
   contract_id: number;
   specification_id: number;
@@ -39,16 +39,15 @@ interface OrderItem {
   quantity: number;
   price: number;
   total: number;
-  isCustom?: boolean;
 }
 
-interface Product {
+interface SpecificationProduct {
   id: number;
-  code: string;
-  name: string;
-  article: string;
-  spec_price?: number;
-  base_price?: number;
+  product_id: number;
+  price: string;
+  product_code: string;
+  product_name: string;
+  product_article: string;
 }
 
 interface PageProps {
@@ -61,7 +60,7 @@ const OrderPage = ({ params }: PageProps) => {
   const { user } = useUserStore();
   const { notifySuccess, notifyError, notifyInfo } = useToast();
 
-  const [activePage] = useState("orders");
+  const [activePage] = useState('orders');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,62 +69,50 @@ const OrderPage = ({ params }: PageProps) => {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
-  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
 
-  const [createOrderItems, setCreateOrderItems] = useState<OrderItem[]>([
-    {
-      id: 1,
-      name: "Товар 1",
-      quantity: 1,
-      price: 10000,
-      total: 10000,
-      isCustom: true,
-    },
-    {
-      id: 2,
-      name: "Товар 2",
-      quantity: 2,
-      price: 5000,
-      total: 10000,
-      isCustom: true,
-    },
-  ]);
+  const [createOrderItems, setCreateOrderItems] = useState<OrderItem[]>([]);
+  const [availableProducts, setAvailableProducts] = useState<
+    SpecificationProduct[]
+  >([]);
+  const [isLoadingAvailableProducts, setIsLoadingAvailableProducts] =
+    useState(false);
+  const [selectedContractId, setSelectedContractId] = useState<string>('');
+  const [selectedProductId, setSelectedProductId] = useState<string>('');
+  const [selectedContractSpecId, setSelectedContractSpecId] = useState<
+    number | null
+  >(null);
 
   const [editOrderItems, setEditOrderItems] = useState<OrderItem[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [editOrderStatus, setEditOrderStatus] = useState<
-    "Выполнен" | "В обработке" | "Отменен"
-  >("В обработке");
-  const [selectedProductId, setSelectedProductId] = useState<string>("");
+    'Новый' | 'Сформирован'
+  >('Новый');
+  const [editAvailableProducts, setEditAvailableProducts] = useState<
+    SpecificationProduct[]
+  >([]);
+  const [isLoadingEditProducts, setIsLoadingEditProducts] = useState(false);
+  const [editSelectedProductId, setEditSelectedProductId] =
+    useState<string>('');
 
   const [newOrder, setNewOrder] = useState({
-    contract_id: "",
-    order_date: new Date().toISOString().split("T")[0],
+    contract_id: '',
+    order_date: new Date().toISOString().split('T')[0],
   });
-
 
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
-      console.log("Fetching orders for user:", user?.id);
-
       const response = await fetch(`/api/my-orders/${user?.id}`);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
       const data = await response.json();
-      console.log("Orders response:", data);
 
       if (data.success) {
         setOrders(data.orders || []);
       } else {
-        notifyError(data.error || "Ошибка загрузки заказов");
+        notifyError(data.error || 'Ошибка загрузки заказов');
       }
     } catch (error) {
-      console.error("Ошибка при загрузке заказов:", error);
-      notifyError("Ошибка загрузки заказов");
+      console.error('Ошибка при загрузке заказов:', error);
+      notifyError('Ошибка загрузки заказов');
     } finally {
       setIsLoading(false);
     }
@@ -134,46 +121,141 @@ const OrderPage = ({ params }: PageProps) => {
   const fetchContracts = async () => {
     try {
       if (!user?.id) return;
-
-      console.log("Fetching contracts for user:", user?.id);
-
       const response = await fetch(`/api/contracts/${user?.id}`);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
       const data = await response.json();
-      console.log("Contracts response:", data);
 
       if (data.success && Array.isArray(data.contracts)) {
         setContracts(data.contracts);
       } else {
-        console.error("Unexpected contracts data format:", data);
         setContracts([]);
       }
     } catch (error) {
-      console.error("Ошибка при загрузке договоров:", error);
+      console.error('Ошибка при загрузке договоров:', error);
       setContracts([]);
     }
   };
 
+  interface ApiProduct {
+    id: number;
+    code: string;
+    name: string;
+    article: string;
+    spec_price: number | null;
+    base_price: number;
+  }
+  const fetchSpecificationProducts = async (contractId: string) => {
+    if (!contractId) return;
+
+    setIsLoadingAvailableProducts(true);
+    try {
+      const selectedContract = contracts.find(
+        (c) => c.id.toString() === contractId,
+      );
+      if (!selectedContract) {
+        setAvailableProducts([]);
+        return;
+      }
+
+      const specResponse = await fetch(
+        `/api/contracts/${contractId}/specifications`,
+      );
+      let specificationId = null;
+
+      if (specResponse.ok) {
+        const specData = await specResponse.json();
+        if (
+          specData.success &&
+          specData.specifications &&
+          specData.specifications.length > 0
+        ) {
+          specificationId = specData.specifications[0].id;
+          setSelectedContractSpecId(specificationId);
+        }
+      }
+
+      if (!specificationId) {
+        setAvailableProducts([]);
+        setSelectedContractSpecId(null);
+        return;
+      }
+
+      // Загружаем товары спецификации
+      const productsResponse = await fetch(
+        `/api/specifications/${specificationId}/products`,
+      );
+      const productsData = await productsResponse.json();
+
+      if (productsData.success && Array.isArray(productsData.products)) {
+        const formattedProducts = productsData.products.map(
+          (p: ApiProduct) => ({
+            id: p.id,
+            product_id: p.id,
+            price: p.spec_price || p.base_price || 0,
+            product_code: p.code,
+            product_name: p.name,
+            product_article: p.article,
+          }),
+        );
+        setAvailableProducts(formattedProducts);
+      } else {
+        setAvailableProducts([]);
+      }
+    } catch (error) {
+      console.error('Error fetching specification products:', error);
+      setAvailableProducts([]);
+    } finally {
+      setIsLoadingAvailableProducts(false);
+    }
+  };
+
+  // Загрузка товаров спецификации для редактирования
+  const fetchEditSpecificationProducts = async (specificationId: number) => {
+    setIsLoadingEditProducts(true);
+    try {
+      const response = await fetch(
+        `/api/specifications/${specificationId}/products`,
+      );
+      const data = await response.json();
+
+      if (data.success && Array.isArray(data.products)) {
+        const formattedProducts = data.products.map((p: ApiProduct) => ({
+          id: p.id,
+          product_id: p.id,
+          price: p.spec_price || p.base_price || 0,
+          product_code: p.code,
+          product_name: p.name,
+          product_article: p.article,
+        }));
+        setEditAvailableProducts(formattedProducts);
+      } else {
+        setEditAvailableProducts([]);
+      }
+    } catch (error) {
+      console.error('Error fetching specification products:', error);
+      setEditAvailableProducts([]);
+    } finally {
+      setIsLoadingEditProducts(false);
+    }
+  };
+  interface OrderProduct {
+    id: number;
+    product_id: number;
+    product_name: string;
+    product_code?: string;
+    product_article?: string;
+    quantity: number | string;
+    price: number | string;
+    total: number | string;
+  }
+  // Загрузка товаров заказа для редактирования
   const fetchOrderProducts = async (orderId: number) => {
     try {
       setIsLoadingProducts(true);
-      console.log("Fetching order products for order:", orderId);
-
       const response = await fetch(`/api/my-orders/${orderId}/products`);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
       const data = await response.json();
-      console.log("Order products response:", data);
 
       if (data.success && Array.isArray(data.products)) {
-        const orderItems = data.products.map((product: any) => ({
+        const orderItems = data.products.map((product: OrderProduct) => ({
           id: product.id,
           product_id: product.product_id,
           name: product.product_name || `Товар #${product.product_id}`,
@@ -182,60 +264,18 @@ const OrderPage = ({ params }: PageProps) => {
           quantity: Number(product.quantity) || 1,
           price: Number(product.price) || 0,
           total: Number(product.total) || 0,
-          isCustom: false,
         }));
-
-        console.log("Mapped order items:", orderItems);
-
-
-        const calculatedTotal = orderItems.reduce(
-          (sum: number, item: OrderItem) => sum + item.total,
-          0
-        );
-        console.log("Calculated total from items:", calculatedTotal);
-
         setEditOrderItems(orderItems);
-
-        if (orderItems.length === 0) {
-          notifyInfo("В заказе пока нет товаров");
-        }
       } else {
-        notifyError(data.error || "Не удалось загрузить товары заказа");
+        setEditOrderItems([]);
       }
     } catch (error) {
-      console.error("Ошибка загрузки товаров заказа:", error);
-      notifyError("Ошибка загрузки товаров заказа");
+      console.error('Ошибка загрузки товаров заказа:', error);
+      setEditOrderItems([]);
     } finally {
       setIsLoadingProducts(false);
     }
   };
-
-  const fetchAvailableProducts = async (specificationId: number) => {
-    try {
-      console.log(
-        "Fetching available products for specification:",
-        specificationId
-      );
-
-      const response = await fetch(
-        `/api/specifications/${specificationId}/products`
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log("Available products response:", data);
-
-      if (data.success) {
-        setAvailableProducts(data.products || []);
-      }
-    } catch (error) {
-      console.error("Ошибка загрузки доступных товаров:", error);
-    }
-  };
-
 
   useEffect(() => {
     if (user?.id) {
@@ -245,626 +285,420 @@ const OrderPage = ({ params }: PageProps) => {
   }, [user?.id]);
 
   useEffect(() => {
+    if (isCreateModalOpen && selectedContractId) {
+      fetchSpecificationProducts(selectedContractId);
+    }
+  }, [isCreateModalOpen, selectedContractId, contracts]);
+
+  useEffect(() => {
     if (selectedOrder && isEditModalOpen) {
-      console.log("Loading data for order:", selectedOrder.id);
       fetchOrderProducts(selectedOrder.id);
-      fetchAvailableProducts(selectedOrder.specification_id);
+      fetchEditSpecificationProducts(selectedOrder.specification_id);
     }
   }, [selectedOrder, isEditModalOpen]);
 
+  const getNextId = (items: OrderItem[]) => {
+    return items.length > 0 ? Math.max(...items.map((item) => item.id)) + 1 : 1;
+  };
 
-  useEffect(() => {
-    if (editOrderItems.length > 0) {
-      console.log("=== DEBUG EDIT ITEMS ===");
-      console.log("Edit items:", editOrderItems);
-      console.log(
-        "Edit total amount:",
-        editOrderItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0)
-      );
-      console.log(
-        "Item totals:",
-        editOrderItems.map((item) => ({
-          id: item.id,
-          name: item.name,
-          total: item.total,
-          totalType: typeof item.total,
-          quantity: item.quantity,
-          price: item.price,
-          calculated: item.quantity * item.price,
-        }))
-      );
+  const handleContractChange = (contractId: string) => {
+    setSelectedContractId(contractId);
+    setNewOrder({ ...newOrder, contract_id: contractId });
+    setCreateOrderItems([]);
+    setSelectedProductId('');
+  };
+
+  // Добавление товара из выпадающего списка
+  const handleAddProductFromDropdown = () => {
+    if (!selectedProductId) {
+      notifyInfo('Выберите товар из списка');
+      return;
     }
-  }, [editOrderItems]);
 
+    const product = availableProducts.find(
+      (p) => p.id.toString() === selectedProductId,
+    );
+    if (!product) {
+      notifyError('Товар не найден');
+      return;
+    }
 
-  const handleAddItem = () => {
-    const newId =
-      createOrderItems.length > 0
-        ? Math.max(...createOrderItems.map((item) => item.id)) + 1
-        : 1;
+    if (
+      createOrderItems.some((item) => item.product_id === product.product_id)
+    ) {
+      notifyInfo('Этот товар уже добавлен в заказ');
+      setSelectedProductId('');
+      return;
+    }
 
+    const price = Number(product.price);
     setCreateOrderItems([
       ...createOrderItems,
       {
-        id: newId,
-        name: "",
+        id: getNextId(createOrderItems),
+        product_id: product.product_id,
+        name: product.product_name,
+        code: product.product_code,
+        article: product.product_article,
         quantity: 1,
-        price: 0,
-        total: 0,
-        isCustom: true,
+        price: price,
+        total: price,
       },
     ]);
+    setSelectedProductId('');
   };
 
   const handleDeleteCreateItem = (id: number) => {
-    if (createOrderItems.length > 1) {
-      setCreateOrderItems(createOrderItems.filter((item) => item.id !== id));
-    }
+    setCreateOrderItems(createOrderItems.filter((item) => item.id !== id));
   };
 
-  const handleCreateItemChange = (
-    id: number,
-    field: string,
-    value: string | number
-  ) => {
+  const handleCreateQuantityChange = (id: number, quantity: number) => {
     setCreateOrderItems(
       createOrderItems.map((item) => {
         if (item.id === id) {
-          const updatedItem = { ...item };
-
-          if (field === "quantity") {
-            updatedItem.quantity = Math.max(1, Number(value) || 1);
-          } else if (field === "price") {
-            updatedItem.price = Math.max(0, Number(value) || 0);
-          } else if (field === "name") {
-            updatedItem.name = value as string;
-          }
-
-          updatedItem.total = Number(
-            (updatedItem.quantity * updatedItem.price).toFixed(2)
-          );
-
-          return updatedItem;
+          const newQuantity = Math.max(1, quantity);
+          const newTotal = newQuantity * item.price;
+          return { ...item, quantity: newQuantity, total: newTotal };
         }
         return item;
-      })
+      }),
     );
   };
 
   const handleCreateOrder = async () => {
     try {
       if (!newOrder.contract_id) {
-        notifyError("Выберите договор");
+        notifyError('Выберите договор');
         return;
       }
 
-      const unnamedItems = createOrderItems.filter(
-        (item) => item.isCustom && !item.name.trim()
-      );
-      if (unnamedItems.length > 0) {
-        notifyError("Укажите название для всех товаров");
+      if (createOrderItems.length === 0) {
+        notifyError('Добавьте хотя бы один товар в заказ');
         return;
       }
 
       const totalAmount = createOrderItems.reduce(
-        (sum, item) => sum + (Number(item.total) || 0),
-        0
+        (sum, item) => sum + item.total,
+        0,
       );
-
-      console.log("Creating order with total amount:", totalAmount);
-
-      const orderData = {
-        client_id: user?.id,
-        contract_id: parseInt(newOrder.contract_id),
-        order_date: newOrder.order_date,
-        amount: Number(totalAmount.toFixed(2)),
-        status: "В обработке" as const,
-        specification_id: 1,
-      };
-
-      console.log("Order data:", orderData);
+      const roundedAmount = Number(totalAmount.toFixed(2));
 
       const response = await fetch(`/api/my-orders/${user?.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(orderData),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          client_id: user?.id,
+          contract_id: parseInt(newOrder.contract_id),
+          order_date: newOrder.order_date,
+          amount: roundedAmount,
+          status: 'Новый',
+          specification_id: selectedContractSpecId || 1,
+        }),
       });
 
       const data = await response.json();
-      console.log("Create order response:", data);
 
       if (response.ok && data.success) {
-        setIsCreateModalOpen(false);
-        fetchOrders();
-        setNewOrder({
-          contract_id: "",
-          order_date: new Date().toISOString().split("T")[0],
+        const productsData = createOrderItems.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.price,
+        }));
+
+        await fetch(`/api/my-orders/${data.orderId}/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ products: productsData }),
         });
-        setCreateOrderItems([
-          {
-            id: 1,
-            name: "Товар 1",
-            quantity: 1,
-            price: 10000,
-            total: 10000,
-            isCustom: true,
-          },
-          {
-            id: 2,
-            name: "Товар 2",
-            quantity: 2,
-            price: 5000,
-            total: 10000,
-            isCustom: true,
-          },
-        ]);
+
         notifySuccess(`Заказ успешно создан! Номер: ${data.orderNumber}`);
+        setIsCreateModalOpen(false);
+        setNewOrder({
+          contract_id: '',
+          order_date: new Date().toISOString().split('T')[0],
+        });
+        setSelectedContractId('');
+        setCreateOrderItems([]);
+        setSelectedProductId('');
+        fetchOrders();
       } else {
-        notifyError(data.error || "Ошибка при создании заказа");
+        notifyError(data.error || 'Ошибка при создании заказа');
       }
     } catch (error) {
-      console.error("Ошибка при создании заказа:", error);
-      notifyError("Ошибка при создании заказа");
+      console.error('Ошибка при создании заказа:', error);
+      notifyError('Ошибка при создании заказа');
     }
   };
 
   const handleEditOrder = async (order: Order) => {
-    console.log("Editing order:", order);
     setSelectedOrder(order);
     setEditOrderStatus(order.status);
     setIsEditModalOpen(true);
   };
 
-  const handleAddEditItem = () => {
-    const newId =
-      editOrderItems.length > 0
-        ? Math.max(...editOrderItems.map((item) => item.id)) + 1
-        : 1;
-
-    setEditOrderItems([
-      ...editOrderItems,
-      {
-        id: newId,
-        name: "",
-        quantity: 1,
-        price: 0,
-        total: 0,
-        isCustom: true,
-      },
-    ]);
-  };
-
-  const handleDeleteEditItem = (id: number) => {
-    if (editOrderItems.length > 1) {
-      setEditOrderItems(editOrderItems.filter((item) => item.id !== id));
-    }
-  };
-
-  const handleEditItemChange = (
-    id: number,
-    field: string,
-    value: string | number
-  ) => {
-    setEditOrderItems(
-      editOrderItems.map((item) => {
-        if (item.id === id) {
-          const updatedItem = { ...item };
-
-          if (field === "quantity") {
-            updatedItem.quantity = Math.max(1, Number(value) || 1);
-          } else if (field === "price") {
-            updatedItem.price = Math.max(0, Number(value) || 0);
-          } else if (field === "name") {
-            updatedItem.name = value as string;
-          } else if (field === "code") {
-            updatedItem.code = value as string;
-          } else if (field === "article") {
-            updatedItem.article = value as string;
-          }
-
-          updatedItem.total = Number(
-            (updatedItem.quantity * updatedItem.price).toFixed(2)
-          );
-
-          return updatedItem;
-        }
-        return item;
-      })
-    );
-  };
-
-  const handleAddProductFromList = () => {
-    if (!selectedProductId) {
-      notifyInfo("Выберите товар из списка");
+  const handleAddEditProductFromDropdown = () => {
+    if (!editSelectedProductId) {
+      notifyInfo('Выберите товар из списка');
       return;
     }
 
-    const product = availableProducts.find(
-      (p) => p.id.toString() === selectedProductId
+    const product = editAvailableProducts.find(
+      (p) => p.id.toString() === editSelectedProductId,
     );
-
     if (!product) {
-      notifyError("Товар не найден");
+      notifyError('Товар не найден');
       return;
     }
 
-    if (editOrderItems.some((item) => item.product_id === product.id)) {
-      notifyInfo("Этот товар уже добавлен в заказ");
-      setSelectedProductId("");
+    if (editOrderItems.some((item) => item.product_id === product.product_id)) {
+      notifyInfo('Этот товар уже добавлен в заказ');
+      setEditSelectedProductId('');
       return;
     }
 
-    const newId =
-      editOrderItems.length > 0
-        ? Math.max(...editOrderItems.map((item) => item.id)) + 1
-        : 1;
-
-    const price = product.spec_price || product.base_price || 0;
-
+    const price = Number(product.price);
     setEditOrderItems([
       ...editOrderItems,
       {
-        id: newId,
-        product_id: product.id,
-        name: product.name,
-        code: product.code,
-        article: product.article,
+        id: getNextId(editOrderItems),
+        product_id: product.product_id,
+        name: product.product_name,
+        code: product.product_code,
+        article: product.product_article,
         quantity: 1,
         price: price,
         total: price,
-        isCustom: false,
       },
     ]);
+    setEditSelectedProductId('');
+  };
 
-    setSelectedProductId("");
-    notifySuccess("Товар добавлен в заказ");
+  const handleDeleteEditItem = (id: number) => {
+    setEditOrderItems(editOrderItems.filter((item) => item.id !== id));
+  };
+
+  const handleEditQuantityChange = (id: number, quantity: number) => {
+    setEditOrderItems(
+      editOrderItems.map((item) => {
+        if (item.id === id) {
+          const newQuantity = Math.max(1, quantity);
+          const newTotal = newQuantity * item.price;
+          return { ...item, quantity: newQuantity, total: newTotal };
+        }
+        return item;
+      }),
+    );
   };
 
   const handleUpdateOrder = async () => {
     if (!selectedOrder) {
-      notifyError("Заказ не выбран");
+      notifyError('Заказ не выбран');
       return;
     }
 
     try {
       setIsSaving(true);
 
-      console.log("=== START UPDATE ORDER ===");
-      console.log("Selected order ID:", selectedOrder.id);
-      console.log("Edit order items:", editOrderItems);
-
       if (editOrderItems.length === 0) {
-        notifyError("Добавьте хотя бы один товар в заказ");
+        notifyError('Добавьте хотя бы один товар в заказ');
         setIsSaving(false);
         return;
       }
 
-      const unnamedItems = editOrderItems.filter(
-        (item) => item.isCustom && !item.name.trim()
+      const totalAmount = editOrderItems.reduce(
+        (sum, item) => sum + item.total,
+        0,
       );
-      if (unnamedItems.length > 0) {
-        notifyError("Укажите название для всех произвольных товаров");
-        setIsSaving(false);
-        return;
-      }
-
-      const regularItems = editOrderItems.filter((item) => !item.isCustom);
-      const customItems = editOrderItems.filter((item) => item.isCustom);
-
-      const invalidRegularItems = regularItems.filter(
-        (item) => !item.product_id
-      );
-      if (invalidRegularItems.length > 0) {
-        notifyInfo(
-          `${invalidRegularItems.length} обычных товаров без привязки к каталогу будут пропущены`
-        );
-      }
-
-      const validRegularItems = regularItems.filter((item) => {
-        if (!item.product_id) return false;
-        if (item.quantity <= 0) {
-          notifyInfo(
-            `Товар "${item.name}" имеет некорректное количество: ${item.quantity}`
-          );
-          return false;
-        }
-        if (item.price <= 0) {
-          notifyInfo(
-            `Товар "${item.name}" имеет некорректную цену: ${item.price}`
-          );
-          return false;
-        }
-        return true;
-      });
-
-      const validCustomItems = customItems.filter((item) => {
-        if (item.quantity <= 0) {
-          notifyInfo(
-            `Произвольный товар "${item.name}" имеет некорректное количество: ${item.quantity}`
-          );
-          return false;
-        }
-        if (item.price <= 0) {
-          notifyInfo(
-            `Произвольный товар "${item.name}" имеет некорректную цену: ${item.price}`
-          );
-          return false;
-        }
-        if (!item.name.trim()) {
-          notifyInfo(`Произвольный товар без названия будет пропущен`);
-          return false;
-        }
-        return true;
-      });
-
-      const validOrderItems = [...validRegularItems, ...validCustomItems];
-
-      if (validOrderItems.length === 0) {
-        notifyError("Нет валидных товаров для сохранения");
-        setIsSaving(false);
-        return;
-      }
-
-
-
-      const totalAmount = validOrderItems.reduce((sum, item) => {
-        return sum + (Number(item.total) || 0);
-      }, 0);
-
       const roundedAmount = Number(totalAmount.toFixed(2));
-      console.log("Calculated total:", totalAmount, "Rounded:", roundedAmount);
 
-      const productsData = validOrderItems.map((item) => ({
-        product_id: item.isCustom ? null : item.product_id,
-        name: item.isCustom ? item.name : null,
-        price: Number(item.price),
-        quantity: Number(item.quantity),
-      }));
-
-     
       const statusResponse = await fetch(`/api/my-orders/${selectedOrder.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           status: editOrderStatus,
           amount: roundedAmount,
         }),
       });
 
-      const statusData = await statusResponse.json();
-      console.log("Status update response:", statusData);
-
       if (!statusResponse.ok) {
-        console.error("Status update failed:", statusData);
-        notifyError(statusData.error || "Ошибка при обновлении статуса заказа");
+        notifyError('Ошибка при обновлении статуса заказа');
         setIsSaving(false);
         return;
       }
+
+      const productsData = editOrderItems.map((item) => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
 
       const productsResponse = await fetch(
         `/api/my-orders/${selectedOrder.id}/products`,
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ products: productsData }),
-        }
+        },
       );
 
-      const productsDataResp = await productsResponse.json();
-
-
       if (!productsResponse.ok) {
-        console.error("Products update failed:", productsDataResp);
-        notifyError(
-          productsDataResp.error || "Ошибка при обновлении товаров заказа"
-        );
+        notifyError('Ошибка при обновлении товаров заказа');
         setIsSaving(false);
         return;
       }
 
-      notifySuccess("Заказ успешно обновлен!");
-
+      notifySuccess('Заказ успешно обновлен!');
       setIsEditModalOpen(false);
       setSelectedOrder(null);
       setEditOrderItems([]);
-      setEditOrderStatus("В обработке");
-      setAvailableProducts([]);
-      setSelectedProductId("");
-
-      await fetchOrders();
+      setEditOrderStatus('Новый');
+      setEditSelectedProductId('');
+      fetchOrders();
     } catch (error) {
-      console.error("Критическая ошибка при обновлении заказа:", error);
-      notifyError(
-        `Критическая ошибка: ${
-          error instanceof Error ? error.message : "Неизвестная ошибка"
-        }`
-      );
+      console.error('Критическая ошибка при обновлении заказа:', error);
+      notifyError('Ошибка при обновлении заказа');
     } finally {
       setIsSaving(false);
     }
   };
 
-
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("ru-RU");
+      return new Date(dateString).toLocaleDateString('ru-RU');
     } catch {
       return dateString;
     }
   };
 
   const formatCurrency = (amount: string | number | undefined): string => {
-    if (amount === undefined || amount === null) return "0 ₽";
-
-    let num: number;
-
-    if (typeof amount === "string") {
-      const cleanString = amount.toString().replace(/[^\d.,-]/g, "");
-      num = parseFloat(cleanString.replace(",", ".")) || 0;
-    } else {
-      num = amount;
-    }
-
+    if (amount === undefined || amount === null) return '0 ₽';
+    const num =
+      typeof amount === 'string'
+        ? parseFloat(amount.replace(/[^\d.,-]/g, '').replace(',', '.')) || 0
+        : amount;
     return (
-      new Intl.NumberFormat("ru-RU", {
+      new Intl.NumberFormat('ru-RU', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }).format(num) + " ₽"
+      }).format(num) + ' ₽'
     );
   };
 
   const getStatusClass = (status: string) => {
     switch (status) {
-      case "Выполнен":
-        return "bg-green-50 text-green-700";
-      case "В обработке":
-        return "bg-yellow-50 text-yellow-700";
-      case "Отменен":
-        return "bg-red-50 text-red-700";
+      case 'Сформирован':
+        return 'bg-green-50 text-green-700';
+      case 'Новый':
+        return 'bg-blue-50 text-blue-700';
       default:
-        return "bg-gray-50 text-gray-700";
+        return 'bg-gray-50 text-gray-700';
     }
   };
 
-
   const createTotalAmount = createOrderItems.reduce(
-    (sum, item) => sum + (Number(item.total) || 0),
-    0
+    (sum, item) => sum + item.total,
+    0,
   );
-
   const editTotalAmount = editOrderItems.reduce(
-    (sum, item) => sum + (Number(item.total) || 0),
-    0
-  );
-
-  const filteredAvailableProducts = availableProducts.filter(
-    (product) => !editOrderItems.some((item) => item.product_id === product.id)
+    (sum, item) => sum + item.total,
+    0,
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
-      <div className="flex min-h-screen">
-        <div className="flex-1 p-8 overflow-auto">
-          {/* Заголовок */}
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-medium text-gray-800">
+    <div className='min-h-screen bg-gray-50 text-gray-800 font-sans'>
+      <div className='flex min-h-screen'>
+        <div className='flex-1 p-8 overflow-auto'>
+          <div className='flex justify-between items-center mb-8'>
+            <h2 className='text-3xl font-medium text-gray-800'>
               Заказы клиента #{user?.id}
             </h2>
           </div>
 
-          {/* Контент страницы */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 min-h-[500px] p-8">
-            {activePage === "orders" && (
-              <div className="animate-fadeIn">
-                <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-200">
-                  <h3 className="text-2xl font-medium text-gray-800">
-                    Список заказов
-                  </h3>
-                  <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="px-6 py-3 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all flex items-center cursor-pointer"
-                  >
-                    <FaPlus className="mr-2" />
-                    Создать заказ
-                  </button>
-                </div>
+          <div className='bg-white rounded-xl shadow-sm border border-gray-200 min-h-[500px] p-8'>
+            <div className='flex justify-between items-center mb-6 pb-6 border-b border-gray-200'>
+              <h3 className='text-2xl font-medium text-gray-800'>
+                Список заказов
+              </h3>
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className='px-6 py-3 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all flex items-center cursor-pointer'
+              >
+                <FaPlus className='mr-2' /> Создать заказ
+              </button>
+            </div>
 
-                {isLoading ? (
-                  <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3E4F5F]"></div>
-                  </div>
-                ) : orders.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">
-                      У клиента пока нет заказов
-                    </p>
-                    <button
-                      onClick={() => setIsCreateModalOpen(true)}
-                      className="mt-4 px-6 py-3 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all inline-flex items-center"
-                    >
-                      <FaPlus className="mr-2" />
-                      Создать первый заказ
-                    </button>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="text-left p-4 text-gray-700 font-semibold">
-                            Номер заказа
-                          </th>
-                          <th className="text-left p-4 text-gray-700 font-semibold">
-                            Дата
-                          </th>
-                          <th className="text-left p-4 text-gray-700 font-semibold">
-                            Договор
-                          </th>
-                          <th className="text-left p-4 text-gray-700 font-semibold">
-                            Сумма
-                          </th>
-                          <th className="text-left p-4 text-gray-700 font-semibold">
-                            Статус
-                          </th>
-                          <th className="text-left p-4 text-gray-700 font-semibold">
-                            Действия
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {orders.map((order) => (
-                          <tr
-                            key={order.id}
-                            className="border-b border-gray-100 hover:bg-gray-50"
+            {isLoading ? (
+              <div className='flex justify-center items-center h-64'>
+                <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-[#3E4F5F]'></div>
+              </div>
+            ) : orders.length === 0 ? (
+              <div className='text-center py-12'>
+                <p className='text-gray-500 text-lg'>
+                  У клиента пока нет заказов
+                </p>
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className='mt-4 px-6 py-3 bg-[#3E4F5F] text-white rounded-lg'
+                >
+                  <FaPlus className='inline mr-2' /> Создать первый заказ
+                </button>
+              </div>
+            ) : (
+              <div className='overflow-x-auto'>
+                <table className='w-full'>
+                  <thead>
+                    <tr className='bg-gray-50'>
+                      <th className='text-left p-4'>Номер заказа</th>
+                      <th className='text-left p-4'>Дата</th>
+                      <th className='text-left p-4'>Договор</th>
+                      <th className='text-left p-4'>Сумма</th>
+                      <th className='text-left p-4'>Статус</th>
+                      <th className='text-left p-4'>Действия</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((order) => (
+                      <tr
+                        key={order.id}
+                        className='border-b border-gray-100 hover:bg-gray-50'
+                      >
+                        <td className='p-4 font-medium'>#{order.number}</td>
+                        <td className='p-4'>{formatDate(order.order_date)}</td>
+                        <td className='p-4'>
+                          {order.contract_code ||
+                            `Договор #${order.contract_id}`}
+                        </td>
+                        <td className='p-4 font-medium'>
+                          {formatCurrency(order.amount)}
+                        </td>
+                        <td className='p-4'>
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusClass(order.status)}`}
                           >
-                            <td className="p-4 font-medium">#{order.number}</td>
-                            <td className="p-4">
-                              {formatDate(order.order_date)}
-                            </td>
-                            <td className="p-4">
-                              {order.contract_code ||
-                                `Договор #${order.contract_id}`}
-                              {order.contract_name &&
-                                ` - ${order.contract_name}`}
-                            </td>
-                            <td className="p-4 font-medium">
-                              {formatCurrency(order.amount)}
-                            </td>
-                            <td className="p-4">
-                              <span
-                                className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusClass(
-                                  order.status
-                                )}`}
-                              >
-                                {order.status}
-                              </span>
-                            </td>
-                            <td className="p-4">
-                              <button
-                                onClick={() => handleEditOrder(order)}
-                                className="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all flex items-center"
-                                title="Редактировать заказ"
-                              >
-                                <FaEdit className="w-4 h-4" />
-                                <span className="ml-2">Редактировать</span>
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className='p-4'>
+                          <button
+                            onClick={() => handleEditOrder(order)}
+                            className={`px-3 py-2 rounded-lg transition-all flex items-center ${
+                              order.status === 'Сформирован'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                            }`}
+                            disabled={order.status === 'Сформирован'}
+                          >
+                            <FaEdit className='mr-2' /> Редактировать
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -873,38 +707,33 @@ const OrderPage = ({ params }: PageProps) => {
 
       {/* Модальное окно создания заказа */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black/40 bg-opacity-40 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-2xl font-medium text-gray-800">
+        <div className='fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center'>
+          <div className='bg-white rounded-xl w-full max-w-5xl max-h-[90vh] overflow-auto'>
+            <div className='p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white'>
+              <h3 className='text-2xl font-medium text-gray-800'>
                 Создание нового заказа
               </h3>
               <button
                 onClick={() => setIsCreateModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+                className='text-gray-500 hover:text-gray-700'
               >
-                <span>×</span>
+                <FaTimes className='w-6 h-6' />
               </button>
             </div>
-            <div className="p-6">
-              <div className="mb-8">
-                <h4 className="text-lg font-medium text-gray-800 mb-4">
+            <div className='p-6'>
+              <div className='mb-8'>
+                <h4 className='text-lg font-medium text-gray-800 mb-4'>
                   Информация о заказе
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                   <div>
-                    <label className="block mb-2 text-gray-700">Договор</label>
+                    <label className='block mb-2 text-gray-700'>Договор</label>
                     <select
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                      value={newOrder.contract_id}
-                      onChange={(e) =>
-                        setNewOrder({
-                          ...newOrder,
-                          contract_id: e.target.value,
-                        })
-                      }
+                      className='w-full px-4 py-2 border border-gray-300 rounded-lg'
+                      value={selectedContractId}
+                      onChange={(e) => handleContractChange(e.target.value)}
                     >
-                      <option value="">Выберите договор</option>
+                      <option value=''>Выберите договор</option>
                       {contracts.map((contract) => (
                         <option key={contract.id} value={contract.id}>
                           {contract.code} - {contract.name}
@@ -913,12 +742,12 @@ const OrderPage = ({ params }: PageProps) => {
                     </select>
                   </div>
                   <div>
-                    <label className="block mb-2 text-gray-700">
+                    <label className='block mb-2 text-gray-700'>
                       Дата заказа
                     </label>
                     <input
-                      type="date"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      type='date'
+                      className='w-full px-4 py-2 border border-gray-300 rounded-lg'
                       value={newOrder.order_date}
                       onChange={(e) =>
                         setNewOrder({ ...newOrder, order_date: e.target.value })
@@ -929,128 +758,139 @@ const OrderPage = ({ params }: PageProps) => {
               </div>
 
               <div>
-                <h4 className="text-lg font-medium text-gray-800 mb-4">
-                  Позиции заказа
-                </h4>
-                <div className="overflow-x-auto mb-6">
-                  <table className="w-full">
+                <div className='flex justify-between items-center mb-4'>
+                  <h4 className='text-lg font-medium text-gray-800'>
+                    Позиции заказа
+                  </h4>
+                  <div className='flex gap-2'>
+                    <select
+                      className='px-4 py-2 border border-gray-300 rounded-lg w-64'
+                      value={selectedProductId}
+                      onChange={(e) => setSelectedProductId(e.target.value)}
+                      disabled={
+                        !selectedContractId || isLoadingAvailableProducts
+                      }
+                    >
+                      <option value=''>-- Выберите товар --</option>
+                      {availableProducts.map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.product_code} - {product.product_name} (
+                          {formatCurrency(product.price)})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleAddProductFromDropdown}
+                      disabled={!selectedProductId}
+                      className={`px-4 py-2 rounded-lg flex items-center ${!selectedProductId ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                    >
+                      <FaPlus className='mr-2' /> Добавить товар
+                    </button>
+                  </div>
+                </div>
+
+                {isLoadingAvailableProducts && selectedContractId && (
+                  <div className='flex justify-center items-center h-20'>
+                    <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-[#3E4F5F]'></div>
+                    <span className='ml-2 text-gray-500'>
+                      Загрузка товаров...
+                    </span>
+                  </div>
+                )}
+
+                <div className='overflow-x-auto mb-6'>
+                  <table className='w-full'>
                     <thead>
-                      <tr className="bg-gray-50">
-                        <th className="p-3 text-left">Номенклатура</th>
-                        <th className="p-3 text-left">Количество</th>
-                        <th className="p-3 text-left">Цена</th>
-                        <th className="p-3 text-left">Сумма</th>
-                        <th className="p-3 text-left">Действия</th>
+                      <tr className='bg-gray-50'>
+                        <th className='p-3 text-left'>Товар</th>
+                        <th className='p-3 text-left w-32'>Количество</th>
+                        <th className='p-3 text-left w-40'>Цена (₽)</th>
+                        <th className='p-3 text-left w-40'>Сумма (₽)</th>
+                        <th className='p-3 text-left w-20'>Действия</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {createOrderItems.map((item) => (
-                        <tr key={item.id} className="border-b">
-                          <td className="p-3">
-                            <input
-                              type="text"
-                              placeholder="Название товара"
-                              value={item.name}
-                              onChange={(e) =>
-                                handleCreateItemChange(
-                                  item.id,
-                                  "name",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full px-3 py-1 border rounded"
-                            />
-                          </td>
-                          <td className="p-3">
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(e) =>
-                                handleCreateItemChange(
-                                  item.id,
-                                  "quantity",
-                                  parseInt(e.target.value) || 1
-                                )
-                              }
-                              className="w-full px-3 py-1 border rounded"
-                            />
-                          </td>
-                          <td className="p-3">
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={item.price}
-                              onChange={(e) =>
-                                handleCreateItemChange(
-                                  item.id,
-                                  "price",
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
-                              className="w-full px-3 py-1 border rounded"
-                            />
-                          </td>
-                          <td className="p-3 font-medium">
-                            {formatCurrency(item.total)}
-                          </td>
-                          <td className="p-3">
-                            <button
-                              onClick={() => handleDeleteCreateItem(item.id)}
-                              disabled={createOrderItems.length <= 1}
-                              className={`p-2 rounded-lg transition-all ${
-                                createOrderItems.length <= 1
-                                  ? "opacity-30 cursor-not-allowed"
-                                  : "text-red-500 hover:text-red-700 hover:bg-red-50"
-                              }`}
-                              title={
-                                createOrderItems.length <= 1
-                                  ? "Должен остаться хотя бы один товар"
-                                  : "Удалить строку"
-                              }
-                            >
-                              <FaTrash className="w-5 h-5" />
-                            </button>
+                      {createOrderItems.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className='p-8 text-center text-gray-500'
+                          >
+                            Нет добавленных товаров. Выберите товар из списка и
+                            нажмите &quot;Добавить товар&rquot;
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        createOrderItems.map((item) => (
+                          <tr
+                            key={item.id}
+                            className='border-b hover:bg-gray-50'
+                          >
+                            <td className='p-3'>
+                              <div className='font-medium'>{item.name}</div>
+                              <div className='text-sm text-gray-500'>
+                                Код: {item.code} | Артикул: {item.article}
+                              </div>
+                            </td>
+                            <td className='p-3'>
+                              <input
+                                type='number'
+                                min='1'
+                                value={item.quantity}
+                                onChange={(e) =>
+                                  handleCreateQuantityChange(
+                                    item.id,
+                                    parseInt(e.target.value) || 1,
+                                  )
+                                }
+                                className='w-24 px-3 py-1 border rounded'
+                              />
+                            </td>
+                            <td className='p-3'>
+                              <span className='font-medium'>
+                                {formatCurrency(item.price)}
+                              </span>
+                            </td>
+                            <td className='p-3 font-medium'>
+                              {formatCurrency(item.total)}
+                            </td>
+                            <td className='p-3'>
+                              <button
+                                onClick={() => handleDeleteCreateItem(item.id)}
+                                className='p-2 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50'
+                              >
+                                <FaTrash className='w-5 h-5' />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
-                <button
-                  onClick={handleAddItem}
-                  className="px-5 py-2 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all flex items-center"
-                >
-                  <FaPlus className="mr-2" />
-                  Добавить товар
-                </button>
 
-                <div className="mt-6 pt-6 border-t text-right">
-                  <div className="text-xl font-semibold">
+                <div className='mt-6 pt-6 border-t text-right'>
+                  <div className='text-xl font-semibold'>
                     Общая сумма: {formatCurrency(createTotalAmount)}
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
+              <div className='flex justify-end gap-4 mt-8 pt-6 border-t'>
                 <button
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                  className='px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50'
                 >
                   Отмена
                 </button>
                 <button
                   onClick={handleCreateOrder}
-                  disabled={!newOrder.contract_id}
-                  className={`px-6 py-3 text-white rounded-lg transition-all flex items-center ${
-                    !newOrder.contract_id
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-[#3E4F5F] hover:bg-[#3E4F5F]/80"
-                  }`}
+                  disabled={
+                    !selectedContractId || createOrderItems.length === 0
+                  }
+                  className={`px-6 py-3 text-white rounded-lg flex items-center ${!selectedContractId || createOrderItems.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3E4F5F] hover:bg-[#3E4F5F]/80'}`}
                 >
-                  <FaPlus className="mr-2" />
-                  Создать заказ
+                  <FaPlus className='mr-2' /> Создать заказ
                 </button>
               </div>
             </div>
@@ -1060,10 +900,10 @@ const OrderPage = ({ params }: PageProps) => {
 
       {/* Модальное окно редактирования заказа */}
       {isEditModalOpen && selectedOrder && (
-        <div className="fixed inset-0 bg-black/40 bg-opacity-40 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-auto">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-2xl font-medium text-gray-800">
+        <div className='fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center'>
+          <div className='bg-white rounded-xl w-full max-w-5xl max-h-[90vh] overflow-auto'>
+            <div className='p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white'>
+              <h3 className='text-2xl font-medium text-gray-800'>
                 Редактирование заказа #{selectedOrder.number}
               </h3>
               <button
@@ -1071,96 +911,69 @@ const OrderPage = ({ params }: PageProps) => {
                   setIsEditModalOpen(false);
                   setSelectedOrder(null);
                   setEditOrderItems([]);
-                  setEditOrderStatus("В обработке");
-                  setAvailableProducts([]);
-                  setSelectedProductId("");
                 }}
-                className="text-gray-500 hover:text-gray-700 text-2xl w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
+                className='text-gray-500 hover:text-gray-700'
               >
-                <span>
-                  <b>×</b>
-                </span>
+                <FaTimes className='w-6 h-6' />
               </button>
             </div>
-            <div className="p-6">
-              <div className="mb-8">
-                <h4 className="text-lg font-medium text-gray-800 mb-4">
+            <div className='p-6'>
+              <div className='mb-8'>
+                <h4 className='text-lg font-medium text-gray-800 mb-4'>
                   Информация о заказе
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                   <div>
-                    <label className="block mb-2 text-gray-700">
+                    <label className='block mb-2 text-gray-700'>
                       Номер заказа
                     </label>
                     <input
-                      type="text"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                      type='text'
+                      className='w-full px-4 py-2 border rounded-lg bg-gray-50'
                       value={selectedOrder.number}
                       readOnly
                     />
                   </div>
                   <div>
-                    <label className="block mb-2 text-gray-700">
+                    <label className='block mb-2 text-gray-700'>
                       Дата заказа
                     </label>
                     <input
-                      type="date"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                      value={selectedOrder.order_date.split("T")[0]}
+                      type='date'
+                      className='w-full px-4 py-2 border rounded-lg bg-gray-50'
+                      value={selectedOrder.order_date.split('T')[0]}
                       readOnly
                     />
                   </div>
                   <div>
-                    <label className="block mb-2 text-gray-700">Статус</label>
+                    <label className='block mb-2 text-gray-700'>Статус</label>
                     <select
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      className='w-full px-4 py-2 border border-gray-300 rounded-lg'
                       value={editOrderStatus}
                       onChange={(e) =>
                         setEditOrderStatus(
-                          e.target.value as
-                            | "Выполнен"
-                            | "В обработке"
-                            | "Отменен"
+                          e.target.value as 'Новый' | 'Сформирован',
                         )
                       }
                     >
-                      <option value="В обработке">В обработке</option>
-                      <option value="Выполнен">Выполнен</option>
-                      <option value="Отменен">Отменен</option>
+                      <option value='Новый'>Новый</option>
+                      <option value='Сформирован'>Сформирован</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block mb-2 text-gray-700">Договор</label>
+                    <label className='block mb-2 text-gray-700'>Договор</label>
                     <input
-                      type="text"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                      value={`${
-                        selectedOrder.contract_code ||
-                        `Договор #${selectedOrder.contract_id}`
-                      }${
-                        selectedOrder.contract_name
-                          ? ` - ${selectedOrder.contract_name}`
-                          : ""
-                      }`}
+                      type='text'
+                      className='w-full px-4 py-2 border rounded-lg bg-gray-50'
+                      value={`${selectedOrder.contract_code || `Договор #${selectedOrder.contract_id}`}`}
                       readOnly
                     />
                   </div>
                   <div>
-                    <label className="block mb-2 text-gray-700">
-                      Исходная сумма
-                    </label>
+                    <label className='block mb-2 text-gray-700'>Клиент</label>
                     <input
-                      type="text"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                      value={formatCurrency(selectedOrder.amount)}
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-2 text-gray-700">Клиент</label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                      type='text'
+                      className='w-full px-4 py-2 border rounded-lg bg-gray-50'
                       value={
                         selectedOrder.client_name ||
                         `Клиент #${selectedOrder.client_id}`
@@ -1172,60 +985,50 @@ const OrderPage = ({ params }: PageProps) => {
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-lg font-medium text-gray-800">
+                <div className='flex justify-between items-center mb-4'>
+                  <h4 className='text-lg font-medium text-gray-800'>
                     Позиции заказа
                   </h4>
-                  <div className="flex items-center gap-2">
-                    <div className="relative">
-                      <select
-                        className="px-4 py-2 border border-gray-300 rounded-lg pr-10"
-                        value={selectedProductId}
-                        onChange={(e) => setSelectedProductId(e.target.value)}
-                      >
-                        <option value="">Добавить товар из спецификации</option>
-                        {filteredAvailableProducts.map((product) => (
-                          <option key={product.id} value={product.id}>
-                            {product.code} - {product.name} (
-                            {formatCurrency(
-                              product.spec_price || product.base_price
-                            )}
-                            )
-                          </option>
-                        ))}
-                      </select>
-                      <FaSearch className="absolute right-3 top-3 text-gray-400" />
-                    </div>
-                    <button
-                      onClick={handleAddProductFromList}
-                      disabled={!selectedProductId}
-                      className={`px-4 py-2 rounded-lg flex items-center ${
-                        !selectedProductId
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-blue-600 hover:bg-blue-700 text-white"
-                      }`}
+                  <div className='flex gap-2'>
+                    <select
+                      className='px-4 py-2 border border-gray-300 rounded-lg w-64'
+                      value={editSelectedProductId}
+                      onChange={(e) => setEditSelectedProductId(e.target.value)}
+                      disabled={isLoadingEditProducts}
                     >
-                      <FaPlus className="mr-2" />
-                      Добавить
+                      <option value=''>-- Выберите товар --</option>
+                      {editAvailableProducts.map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.product_code} - {product.product_name} (
+                          {formatCurrency(product.price)})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleAddEditProductFromDropdown}
+                      disabled={!editSelectedProductId}
+                      className={`px-4 py-2 rounded-lg flex items-center ${!editSelectedProductId ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                    >
+                      <FaPlus className='mr-2' /> Добавить товар
                     </button>
                   </div>
                 </div>
 
                 {isLoadingProducts ? (
-                  <div className="flex justify-center items-center h-40">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3E4F5F]"></div>
+                  <div className='flex justify-center items-center h-40'>
+                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#3E4F5F]'></div>
                   </div>
                 ) : (
                   <>
-                    <div className="overflow-x-auto mb-6">
-                      <table className="w-full">
+                    <div className='overflow-x-auto mb-6'>
+                      <table className='w-full'>
                         <thead>
-                          <tr className="bg-gray-50">
-                            <th className="p-3 text-left">Товар</th>
-                            <th className="p-3 text-left">Количество</th>
-                            <th className="p-3 text-left">Цена (₽)</th>
-                            <th className="p-3 text-left">Сумма (₽)</th>
-                            <th className="p-3 text-left">Действия</th>
+                          <tr className='bg-gray-50'>
+                            <th className='p-3 text-left'>Товар</th>
+                            <th className='p-3 text-left w-32'>Количество</th>
+                            <th className='p-3 text-left w-40'>Цена (₽)</th>
+                            <th className='p-3 text-left w-40'>Сумма (₽)</th>
+                            <th className='p-3 text-left w-20'>Действия</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1233,7 +1036,7 @@ const OrderPage = ({ params }: PageProps) => {
                             <tr>
                               <td
                                 colSpan={5}
-                                className="p-8 text-center text-gray-500"
+                                className='p-8 text-center text-gray-500'
                               >
                                 В заказе нет товаров
                               </td>
@@ -1242,98 +1045,44 @@ const OrderPage = ({ params }: PageProps) => {
                             editOrderItems.map((item) => (
                               <tr
                                 key={item.id}
-                                className="border-b hover:bg-gray-50"
+                                className='border-b hover:bg-gray-50'
                               >
-                                <td className="p-3">
-                                  {item.isCustom ? (
-                                    <input
-                                      type="text"
-                                      placeholder="Название товара"
-                                      value={item.name}
-                                      onChange={(e) =>
-                                        handleEditItemChange(
-                                          item.id,
-                                          "name",
-                                          e.target.value
-                                        )
-                                      }
-                                      className="w-full px-3 py-1 border rounded mb-1"
-                                    />
-                                  ) : (
-                                    <>
-                                      <div className="font-medium">
-                                        {item.name}
-                                      </div>
-                                      {item.code && (
-                                        <div className="text-sm text-gray-500">
-                                          Код: {item.code}
-                                        </div>
-                                      )}
-                                      {item.article && (
-                                        <div className="text-sm text-gray-500">
-                                          Артикул: {item.article}
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
-                                  {item.isCustom && (
-                                    <div className="text-xs text-blue-600 mt-1">
-                                      Произвольный товар
-                                    </div>
-                                  )}
+                                <td className='p-3'>
+                                  <div className='font-medium'>{item.name}</div>
+                                  <div className='text-sm text-gray-500'>
+                                    Код: {item.code} | Артикул: {item.article}
+                                  </div>
                                 </td>
-                                <td className="p-3">
+                                <td className='p-3'>
                                   <input
-                                    type="number"
-                                    min="1"
+                                    type='number'
+                                    min='1'
                                     value={item.quantity}
                                     onChange={(e) =>
-                                      handleEditItemChange(
+                                      handleEditQuantityChange(
                                         item.id,
-                                        "quantity",
-                                        parseInt(e.target.value) || 1
+                                        parseInt(e.target.value) || 1,
                                       )
                                     }
-                                    className="w-full px-3 py-1 border rounded"
+                                    className='w-24 px-3 py-1 border rounded'
                                   />
                                 </td>
-                                <td className="p-3">
-                                  <input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={item.price}
-                                    onChange={(e) =>
-                                      handleEditItemChange(
-                                        item.id,
-                                        "price",
-                                        parseFloat(e.target.value) || 0
-                                      )
-                                    }
-                                    className="w-full px-3 py-1 border rounded"
-                                  />
+                                <td className='p-3'>
+                                  <span className='font-medium'>
+                                    {formatCurrency(item.price)}
+                                  </span>
                                 </td>
-                                <td className="p-3 font-medium">
+                                <td className='p-3 font-medium'>
                                   {formatCurrency(item.total)}
                                 </td>
-                                <td className="p-3">
+                                <td className='p-3'>
                                   <button
                                     onClick={() =>
                                       handleDeleteEditItem(item.id)
                                     }
-                                    disabled={editOrderItems.length <= 1}
-                                    className={`p-2 rounded-lg transition-all ${
-                                      editOrderItems.length <= 1
-                                        ? "opacity-30 cursor-not-allowed"
-                                        : "text-red-500 hover:text-red-700 hover:bg-red-50"
-                                    }`}
-                                    title={
-                                      editOrderItems.length <= 1
-                                        ? "Должен остаться хотя бы один товар"
-                                        : "Удалить товар"
-                                    }
+                                    className='p-2 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50'
                                   >
-                                    <FaTrash className="w-5 h-5" />
+                                    <FaTrash className='w-5 h-5' />
                                   </button>
                                 </td>
                               </tr>
@@ -1342,62 +1091,40 @@ const OrderPage = ({ params }: PageProps) => {
                         </tbody>
                       </table>
                     </div>
-                    <button
-                      onClick={handleAddEditItem}
-                      className="px-5 py-2 bg-[#3E4F5F] text-white rounded-lg hover:bg-[#3E4F5F]/80 transition-all flex items-center mb-6"
-                    >
-                      <FaPlus className="mr-2" />
-                      Добавить произвольный товар
-                    </button>
+                    <div className='mt-6 pt-6 border-t text-right'>
+                      <div className='text-xl font-semibold'>
+                        Общая сумма: {formatCurrency(editTotalAmount)}
+                      </div>
+                    </div>
                   </>
                 )}
-
-                <div className="mt-6 pt-6 border-t text-right">
-                  <div className="text-xl font-semibold">
-                    Общая сумма: {formatCurrency(editTotalAmount)}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Изменение:{" "}
-                    {formatCurrency(
-                      editTotalAmount - parseFloat(selectedOrder.amount || "0")
-                    )}
-                  </div>
-                </div>
               </div>
 
-              <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
+              <div className='flex justify-end gap-4 mt-8 pt-6 border-t'>
                 <button
                   onClick={() => {
                     setIsEditModalOpen(false);
                     setSelectedOrder(null);
                     setEditOrderItems([]);
-                    setEditOrderStatus("В обработке");
-                    setAvailableProducts([]);
-                    setSelectedProductId("");
                   }}
                   disabled={isSaving}
-                  className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className='px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50'
                 >
                   Отмена
                 </button>
                 <button
                   onClick={handleUpdateOrder}
                   disabled={isSaving || editOrderItems.length === 0}
-                  className={`px-6 py-3 text-white rounded-lg transition-all flex items-center ${
-                    isSaving || editOrderItems.length === 0
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-600 hover:bg-green-700"
-                  }`}
+                  className={`px-6 py-3 text-white rounded-lg flex items-center ${isSaving || editOrderItems.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
                 >
                   {isSaving ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>{' '}
                       Сохранение...
                     </>
                   ) : (
                     <>
-                      <FaSave className="mr-2" />
-                      Сохранить изменения
+                      <FaSave className='mr-2' /> Сохранить изменения
                     </>
                   )}
                 </button>
