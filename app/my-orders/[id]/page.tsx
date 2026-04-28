@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { FaTrash, FaEdit, FaPlus, FaSave, FaTimes } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaPlus, FaSave, FaTimes, FaEye } from 'react-icons/fa';
 import { useUserStore } from '@/store/userStore';
 import { useToast } from '@/app/ToastProvider';
 
@@ -685,14 +685,21 @@ const OrderPage = ({ params }: PageProps) => {
                         <td className='p-4'>
                           <button
                             onClick={() => handleEditOrder(order)}
-                            className={`px-3 py-2 rounded-lg transition-all flex items-center ${
+                            className={`w-40 px-3 py-2 rounded-lg transition-all flex items-center min-[160]: ${
                               order.status === 'Сформирован'
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                                ? 'bg-gray-100 text-gray-400 cursor-pointer flex justify-center'
+                                : 'bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer'
                             }`}
-                            disabled={order.status === 'Сформирован'}
                           >
-                            <FaEdit className='mr-2' /> Редактировать
+                            {order.status === 'Сформирован' ? (
+                              <>
+                                <FaEye className='mr-2' /> Просмотр
+                              </>
+                            ) : (
+                              <>
+                                <FaEdit className='mr-2' /> Редактировать
+                              </>
+                            )}
                           </button>
                         </td>
                       </tr>
@@ -904,7 +911,9 @@ const OrderPage = ({ params }: PageProps) => {
           <div className='bg-white rounded-xl w-full max-w-5xl max-h-[90vh] overflow-auto'>
             <div className='p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white'>
               <h3 className='text-2xl font-medium text-gray-800'>
-                Редактирование заказа #{selectedOrder.number}
+                {selectedOrder.status === 'Сформирован'
+                  ? `Просмотр заказа # ${selectedOrder.number}`
+                  : `Редактирование заказа # ${selectedOrder.number}`}
               </h3>
               <button
                 onClick={() => {
@@ -948,13 +957,14 @@ const OrderPage = ({ params }: PageProps) => {
                   <div>
                     <label className='block mb-2 text-gray-700'>Статус</label>
                     <select
-                      className='w-full px-4 py-2 border border-gray-300 rounded-lg'
+                      className={`w-full px-4 py-2 border border-gray-300 rounded-lg ${editOrderStatus === 'Сформирован' ? 'bg-gray-50 border-green-200 cursor-not-allowed' : ''}`}
                       value={editOrderStatus}
                       onChange={(e) =>
                         setEditOrderStatus(
                           e.target.value as 'Новый' | 'Сформирован',
                         )
                       }
+                      disabled={editOrderStatus === 'Сформирован'}
                     >
                       <option value='Новый'>Новый</option>
                       <option value='Сформирован'>Сформирован</option>
@@ -989,29 +999,33 @@ const OrderPage = ({ params }: PageProps) => {
                   <h4 className='text-lg font-medium text-gray-800'>
                     Позиции заказа
                   </h4>
-                  <div className='flex gap-2'>
-                    <select
-                      className='px-4 py-2 border border-gray-300 rounded-lg w-64'
-                      value={editSelectedProductId}
-                      onChange={(e) => setEditSelectedProductId(e.target.value)}
-                      disabled={isLoadingEditProducts}
-                    >
-                      <option value=''>-- Выберите товар --</option>
-                      {editAvailableProducts.map((product) => (
-                        <option key={product.id} value={product.id}>
-                          {product.product_code} - {product.product_name} (
-                          {formatCurrency(product.price)})
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={handleAddEditProductFromDropdown}
-                      disabled={!editSelectedProductId}
-                      className={`px-4 py-2 rounded-lg flex items-center ${!editSelectedProductId ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                    >
-                      <FaPlus className='mr-2' /> Добавить товар
-                    </button>
-                  </div>
+                  {editOrderStatus === 'Новый' ? (
+                    <div className='flex gap-2'>
+                      <select
+                        className='px-4 py-2 border border-gray-300 rounded-lg w-64'
+                        value={editSelectedProductId}
+                        onChange={(e) =>
+                          setEditSelectedProductId(e.target.value)
+                        }
+                        disabled={isLoadingEditProducts}
+                      >
+                        <option value=''>-- Выберите товар --</option>
+                        {editAvailableProducts.map((product) => (
+                          <option key={product.id} value={product.id}>
+                            {product.product_code} - {product.product_name} (
+                            {formatCurrency(product.price)})
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={handleAddEditProductFromDropdown}
+                        disabled={!editSelectedProductId}
+                        className={`px-4 py-2 rounded-lg flex items-center ${!editSelectedProductId ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                      >
+                        <FaPlus className='mr-2' /> Добавить товар
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
 
                 {isLoadingProducts ? (
@@ -1099,36 +1113,37 @@ const OrderPage = ({ params }: PageProps) => {
                   </>
                 )}
               </div>
-
-              <div className='flex justify-end gap-4 mt-8 pt-6 border-t'>
-                <button
-                  onClick={() => {
-                    setIsEditModalOpen(false);
-                    setSelectedOrder(null);
-                    setEditOrderItems([]);
-                  }}
-                  disabled={isSaving}
-                  className='px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50'
-                >
-                  Отмена
-                </button>
-                <button
-                  onClick={handleUpdateOrder}
-                  disabled={isSaving || editOrderItems.length === 0}
-                  className={`px-6 py-3 text-white rounded-lg flex items-center ${isSaving || editOrderItems.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
-                >
-                  {isSaving ? (
-                    <>
-                      <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>{' '}
-                      Сохранение...
-                    </>
-                  ) : (
-                    <>
-                      <FaSave className='mr-2' /> Сохранить изменения
-                    </>
-                  )}
-                </button>
-              </div>
+              {editOrderStatus === 'Новый' ? (
+                <div className='flex justify-end gap-4 mt-8 pt-6 border-t'>
+                  <button
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setSelectedOrder(null);
+                      setEditOrderItems([]);
+                    }}
+                    disabled={isSaving}
+                    className='px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50'
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    onClick={handleUpdateOrder}
+                    disabled={isSaving || editOrderItems.length === 0}
+                    className={`px-6 py-3 text-white rounded-lg flex items-center ${isSaving || editOrderItems.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>{' '}
+                        Сохранение...
+                      </>
+                    ) : (
+                      <>
+                        <FaSave className='mr-2' /> Сохранить изменения
+                      </>
+                    )}
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { AppJwtPayload } from '@/utils/generateToken';
+
 
 const protectedRoutes = {
   '/personal-account': {
@@ -41,7 +41,12 @@ export async function proxy(request: NextRequest) {
 
   const publicPaths = [
     '/auth',
+    '/403',
     '/api/login',
+    '/api/register',
+    '/api/out-refresh',
+    '/api/reset-password',
+    '/api/forgot-password',
     '/api/auth',
     '/api/refresh',
     '/api/checkAuth',
