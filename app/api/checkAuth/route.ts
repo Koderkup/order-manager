@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
-import { createAccessToken } from "@/utils/generateToken";
+import { AppJwtPayload, createAccessToken } from "@/utils/generateToken";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -13,8 +13,8 @@ export async function GET() {
     try {
       const payload = jwt.verify(
         refreshToken,
-        process.env.NEXT_PUBLIC_JWT_SECRET!
-      ) as any;
+        process.env.NEXT_PUBLIC_JWT_SECRET!,
+      ) as unknown as AppJwtPayload;;
       const newAccessToken = createAccessToken(payload);
 
       const response = NextResponse.json({
@@ -43,8 +43,8 @@ export async function GET() {
     try {
       const payload = jwt.verify(
         accessToken,
-        process.env.NEXT_PUBLIC_JWT_SECRET!
-      ) as any;
+        process.env.NEXT_PUBLIC_JWT_SECRET!,
+      ) as jwt.JwtPayload;
       return NextResponse.json({ user: payload });
     } catch {
       if (!refreshToken) {
@@ -53,8 +53,8 @@ export async function GET() {
       try {
         const payload = jwt.verify(
           refreshToken,
-          process.env.NEXT_PUBLIC_JWT_SECRET!
-        ) as any;
+          process.env.NEXT_PUBLIC_JWT_SECRET!,
+        ) as unknown as AppJwtPayload;;
         const newAccessToken = createAccessToken(payload);
 
         const response = NextResponse.json({
