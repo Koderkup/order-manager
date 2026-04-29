@@ -1,0 +1,39 @@
+{
+  "clientINN": "123458994448",
+  "contracts": [
+    {
+      "code": "CTR888",
+      "name": "Договор с товарами",
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "maxAmount": 500000,
+      "active": true,
+      "specifications": [
+        {
+          "code": "SP888",
+          "name": "Спецификация №1",
+          "startDate": "2026-01-01",
+          "endDate": "2026-12-31",
+          "maxAmount": 500000,
+          "active": true,
+          "products": [
+            {
+              "code": "P888-1",
+              "name": "Тестовый товар 1",
+              "artice": "ART001",
+              "active": true,
+              "price": 15000
+            },
+            {
+              "code": "P888-2",
+              "name": "Тестовый товар 2",
+              "artice": "ART002",
+              "active": true,
+              "price": 25000
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

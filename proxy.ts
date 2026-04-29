@@ -52,6 +52,8 @@ export async function proxy(request: NextRequest) {
     '/api/checkAuth',
     '/inactive',
     '/api/logout',
+    '/api/1c/sync', 
+    '/api/1c/orders',
     '/_next',
     '/static',
   ];
